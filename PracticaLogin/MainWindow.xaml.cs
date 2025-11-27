@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace PracticaLogin
@@ -8,78 +10,118 @@ namespace PracticaLogin
         public MainWindow()
         {
             InitializeComponent();
-            // Esto crea el archivo de base de datos la primera vez que ejecutas
-            DatabaseHelper.InitializeDatabase();
+            try
+            {
+                DatabaseHelper.InitializeDatabase();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error BD: " + ex.Message);
+            }
         }
 
-        // --- BOTÓN INICIAR SESIÓN ---
-        private void BtnLogin_Click(object sender, RoutedEventArgs e)
+        private void TopBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            string user = txtUsuario.Text;
-            string pass = txtPassword.Password;
-
-            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
-            {
-                MostrarMensaje("Completa todos los campos", Brushes.Red);
-                return;
-            }
-
-            // Consultar a la base de datos
-            bool esValido = DatabaseHelper.ValidateUser(user, pass);
-
-            if (esValido)
-            {
-                MostrarMensaje("¡Bienvenido!", Brushes.Green);
-
-                // Ir al Home
-                HomeWindow home = new HomeWindow();
-                home.Show();
-                this.Close();
-            }
-            else
-            {
-                MostrarMensaje("Usuario no encontrado o clave errónea", Brushes.Red);
-            }
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
         }
 
-        // --- BOTÓN REGISTRARSE ---
-        private void BtnRegistrar_Click(object sender, RoutedEventArgs e)
+        private void BtnMinimizar_Click(object sender, RoutedEventArgs e)
         {
-            string user = txtUsuario.Text;
-            string pass = txtPassword.Password;
-
-            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
-            {
-                MostrarMensaje("Ingresa un usuario y clave para registrarte", Brushes.Orange);
-                return;
-            }
-
-            // Intentar registrar en base de datos
-            bool registroExitoso = DatabaseHelper.RegisterUser(user, pass);
-
-            if (registroExitoso)
-            {
-                MostrarMensaje("¡Usuario creado! Ahora puedes entrar.", Brushes.Blue);
-                // Opcional: Limpiar campos
-                txtUsuario.Clear();
-                txtPassword.Clear();
-            }
-            else
-            {
-                MostrarMensaje("El usuario ya existe. Prueba otro.", Brushes.Red);
-            }
+            this.WindowState = WindowState.Minimized;
         }
 
-        private void BtnSalir_Click(object sender, RoutedEventArgs e)
+        private void BtnCerrar_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
 
-        // Función auxiliar para no repetir código de mensajes
-        private void MostrarMensaje(string texto, Brush color)
+        // === BOTÓN LOGIN ===
+        private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            lblMensaje.Text = texto;
-            lblMensaje.Foreground = color;
+            string user = txtUsuarioLogin.Text;
+            string pass = txtPasswordLogin.Password;
+
+            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
+            {
+                lblMensajeLogin.Text = "Faltan datos";
+                lblMensajeLogin.Foreground = Brushes.Red;
+                return;
+            }
+
+            string resultado = DatabaseHelper.ValidateUser(user, pass);
+
+            if (resultado == "OK")
+            {
+                // AQUI ESTA EL CAMBIO: Enviamos el usuario (user) al Home
+                HomeWindow home = new HomeWindow(user);
+                home.Show();
+                this.Close();
+            }
+            else if (resultado == "NO_USER")
+            {
+                lblMensajeLogin.Text = "Usuario no existe";
+                lblMensajeLogin.Foreground = Brushes.Red;
+            }
+            else if (resultado.StartsWith("WRONG_PASS"))
+            {
+                string[] partes = resultado.Split('|');
+                lblMensajeLogin.Text = $"Contraseña mal. Te quedan {partes[1]} intentos.";
+                lblMensajeLogin.Foreground = Brushes.Orange;
+            }
+            else if (resultado.StartsWith("LOCKED"))
+            {
+                string[] partes = resultado.Split('|');
+                lblMensajeLogin.Text = $"BLOQUEADO. Espera {partes[1]} minutos.";
+                lblMensajeLogin.Foreground = Brushes.Red;
+            }
+            else
+            {
+                lblMensajeLogin.Text = "Error: " + resultado;
+            }
+        }
+
+        // === BOTÓN REGISTRO ===
+        private void BtnCrearCuenta_Click(object sender, RoutedEventArgs e)
+        {
+            string nombre = txtRegNombre.Text;
+            string user = txtRegUser.Text;
+            string pass = txtRegPass.Password;
+
+            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass) || string.IsNullOrEmpty(nombre))
+            {
+                lblMensajeRegistro.Text = "Datos obligatorios faltantes";
+                return;
+            }
+
+            bool ok = DatabaseHelper.RegisterUser(nombre, txtRegApellidos.Text, user, pass, txtRegEmail.Text, txtRegTlf.Text, txtRegCP.Text);
+
+            if (ok)
+            {
+                IrALogin_Click(null, null);
+                lblMensajeLogin.Text = "¡Registrado! Entra ahora.";
+                lblMensajeLogin.Foreground = Brushes.Green;
+                txtRegNombre.Clear(); txtRegUser.Clear(); txtRegPass.Clear();
+            }
+            else
+            {
+                lblMensajeRegistro.Text = "Usuario ya existe";
+                lblMensajeRegistro.Foreground = Brushes.Red;
+            }
+        }
+
+        private void IrARegistro_Click(object sender, RoutedEventArgs e)
+        {
+            pnlLogin.Visibility = Visibility.Collapsed;
+            pnlRegistro.Visibility = Visibility.Visible;
+            lblMensajeLogin.Text = "";
+        }
+
+        private void IrALogin_Click(object sender, RoutedEventArgs e)
+        {
+            pnlRegistro.Visibility = Visibility.Collapsed;
+            pnlLogin.Visibility = Visibility.Visible;
+            lblMensajeRegistro.Text = "";
         }
     }
 }

@@ -3,7 +3,45 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Configuración" Height="600" Width="900"
         WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="NoResize"
-        Background="#121212">
+        Background="#121212"
+        Icon="/Assets/logo.ico"
+        MouseDown="Window_MouseDown">
+
+    <Window.Resources>
+        <Style x:Key="MenuButton" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="5">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="#00E5FF"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter TargetName="border" Property="Background" Value="#3300E5FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#00E5FF"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#00E5FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Slider">
+            <Setter Property="Foreground" Value="#00E5FF"/>
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -13,44 +51,116 @@
 
         <Border Grid.Column="0" Background="#B71C1C">
             <StackPanel Margin="20">
-                <TextBlock Text="AJUSTES" FontSize="30" Foreground="#00E5FF" FontWeight="Bold" Margin="0,0,0,40"/>
+                <TextBlock Text="AJUSTES" FontSize="30" Foreground="#00E5FF" FontWeight="Bold" Margin="0,0,0,40">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="5" ShadowDepth="2"/>
+                    </TextBlock.Effect>
+                </TextBlock>
 
-                <RadioButton Content="GENERAL" Style="{StaticResource MenuButton}" IsChecked="True"/>
-                <RadioButton Content="GRÁFICOS" Style="{StaticResource MenuButton}"/>
-                <RadioButton Content="SONIDO" Style="{StaticResource MenuButton}"/>
-                <RadioButton Content="CUENTA" Style="{StaticResource MenuButton}"/>
+                <RadioButton Content="GENERAL" GroupName="Menu" Style="{StaticResource MenuButton}" IsChecked="True" Click="BtnGeneral_Click"/>
+                <RadioButton Content="GRÁFICOS" GroupName="Menu" Style="{StaticResource MenuButton}" Click="BtnGraficos_Click"/>
+                <RadioButton Content="SONIDO" GroupName="Menu" Style="{StaticResource MenuButton}" Click="BtnSonido_Click"/>
+                <RadioButton Content="CUENTA" GroupName="Menu" Style="{StaticResource MenuButton}" Click="BtnCuenta_Click"/>
 
-                <Button Content="VOLVER" Click="BtnVolver_Click" VerticalAlignment="Bottom" Margin="0,250,0,0"
-                        Background="#121212" Foreground="White" Height="40" BorderThickness="0" FontWeight="Bold"/>
+                <Button Content="VOLVER" Click="BtnVolver_Click" VerticalAlignment="Bottom" Margin="0,180,0,0"
+                        Background="#33000000" Foreground="White" Height="40" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
             </StackPanel>
         </Border>
 
         <Border Grid.Column="1" Padding="40">
-            <StackPanel>
-                <TextBlock Text="Configuración General" FontSize="24" Foreground="White" FontWeight="Bold" Margin="0,0,0,30"/>
+            <Grid>
 
-                <TextBlock Text="Idioma del Launcher" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <ComboBox Height="35" Background="#1E1E1E" Foreground="Black" Margin="0,0,0,20" SelectedIndex="0">
-                    <ComboBoxItem Content="Español (España)"/>
-                    <ComboBoxItem Content="English (US)"/>
-                </ComboBox>
+                <StackPanel x:Name="pnlGeneral" Visibility="Visible">
+                    <TextBlock Text="Configuración General" FontSize="28" Foreground="White" FontWeight="Bold" Margin="0,0,0,30"/>
 
-                <TextBlock Text="Directorio de Juegos" Foreground="#AAAAAA" Margin="0,0,0,5"/>
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Text="C:\Games\AkayLibrary" Height="35" Background="#1E1E1E" Foreground="White" BorderBrush="#333333" VerticalContentAlignment="Center" Padding="5"/>
-                    <Button Grid.Column="1" Content="..." Width="40" Background="#333333" Foreground="White" Margin="10,0,0,0"/>
-                </Grid>
+                    <TextBlock Text="Idioma del Launcher" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <ComboBox Height="35" Background="#1E1E1E" Foreground="Black" Margin="0,0,0,20" SelectedIndex="0" Padding="5">
+                        <ComboBoxItem Content="Español (España)"/>
+                        <ComboBoxItem Content="English (US)"/>
+                        <ComboBoxItem Content="Français"/>
+                    </ComboBox>
 
-                <CheckBox Content="Iniciar AKAY al arrancar Windows" Foreground="White" Margin="0,0,0,15" IsChecked="True"/>
-                <CheckBox Content="Minimizar a la bandeja del sistema" Foreground="White" Margin="0,0,0,15"/>
-                <CheckBox Content="Mostrar FPS en el juego" Foreground="White" Margin="0,0,0,30" IsChecked="True"/>
+                    <TextBlock Text="Directorio de Juegos" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="C:\Games\AkayLibrary" Height="35" Background="#1E1E1E" Foreground="White" BorderBrush="#333333" VerticalContentAlignment="Center" Padding="5"/>
+                        <Button Grid.Column="1" Content="..." Width="40" Background="#333333" Foreground="White" Margin="10,0,0,0" BorderThickness="0"/>
+                    </Grid>
 
-                <Button Content="GUARDAR CAMBIOS" Height="45" Width="200" HorizontalAlignment="Left"
-                        Background="#00E5FF" Foreground="#121212" FontWeight="Bold" BorderThickness="0">
+                    <CheckBox Content="Iniciar AKAY al arrancar Windows" Foreground="White" Margin="0,0,0,15" IsChecked="True" FontSize="14"/>
+                    <CheckBox Content="Minimizar a la bandeja del sistema" Foreground="White" Margin="0,0,0,15" FontSize="14"/>
+                    <CheckBox Content="Actualizaciones automáticas" Foreground="White" Margin="0,0,0,30" IsChecked="True" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel x:Name="pnlGraficos" Visibility="Collapsed">
+                    <TextBlock Text="Ajustes Gráficos" FontSize="28" Foreground="White" FontWeight="Bold" Margin="0,0,0,30"/>
+
+                    <TextBlock Text="Resolución Predeterminada" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <ComboBox Height="35" Background="#1E1E1E" Foreground="Black" Margin="0,0,0,20" SelectedIndex="2" Padding="5">
+                        <ComboBoxItem Content="1280 x 720"/>
+                        <ComboBoxItem Content="1600 x 900"/>
+                        <ComboBoxItem Content="1920 x 1080 (Recomendado)"/>
+                        <ComboBoxItem Content="2560 x 1440"/>
+                    </ComboBox>
+
+                    <TextBlock Text="Calidad de Texturas" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <Slider Minimum="0" Maximum="100" Value="80" Margin="0,0,0,20" TickFrequency="25" IsSnapToTickEnabled="True"/>
+
+                    <CheckBox Content="V-Sync (Sincronización Vertical)" Foreground="White" Margin="0,0,0,15" FontSize="14"/>
+                    <CheckBox Content="Mostrar FPS en el juego" Foreground="White" Margin="0,0,0,15" IsChecked="True" FontSize="14"/>
+                    <CheckBox Content="Modo de bajo rendimiento" Foreground="White" Margin="0,0,0,15" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel x:Name="pnlSonido" Visibility="Collapsed">
+                    <TextBlock Text="Audio y Voz" FontSize="28" Foreground="White" FontWeight="Bold" Margin="0,0,0,30"/>
+
+                    <TextBlock Text="Volumen Maestro" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <Slider Minimum="0" Maximum="100" Value="100" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Música del Launcher" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <Slider Minimum="0" Maximum="100" Value="50" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Dispositivo de Salida" Foreground="#AAAAAA" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <ComboBox Height="35" Background="#1E1E1E" Foreground="Black" Margin="0,0,0,20" SelectedIndex="0" Padding="5">
+                        <ComboBoxItem Content="Auriculares (Realtek Audio)"/>
+                        <ComboBoxItem Content="Altavoces"/>
+                    </ComboBox>
+
+                    <CheckBox Content="Silenciar audio cuando la ventana esté minimizada" Foreground="White" Margin="0,0,0,15" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel x:Name="pnlCuenta" Visibility="Collapsed">
+                    <TextBlock Text="Detalles de la Cuenta" FontSize="28" Foreground="White" FontWeight="Bold" Margin="0,0,0,30"/>
+
+                    <Border Background="#1E1E1E" CornerRadius="10" Padding="20" Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="Usuario Conectado" Foreground="#888888" FontSize="12"/>
+                            <TextBlock x:Name="lblUsuarioCuenta" Text="CARGANDO..." Foreground="#00E5FF" FontSize="24" FontWeight="Bold" Margin="0,5,0,0"/>
+                            <TextBlock x:Name="lblIdCuenta" Text="ID: #..." Foreground="#666666" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="CAMBIAR CONTRASEÑA" Click="BtnMostrarCambioPass_Click" Height="40" Background="Transparent" BorderBrush="White" BorderThickness="1" Foreground="White" Margin="0,0,0,10"/>
+
+                    <Border x:Name="pnlCambioPass" Background="#33000000" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="5" Padding="15" Margin="0,0,0,15" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Introduce la nueva contraseña:" Foreground="White" Margin="0,0,0,5"/>
+                            <PasswordBox x:Name="txtNuevaPass" Height="30" Background="#111" Foreground="White" BorderBrush="#555" Margin="0,0,0,10"/>
+
+                            <Button Content="CONFIRMAR CAMBIO" Click="BtnConfirmarPass_Click" Background="#00E5FF" Foreground="Black" FontWeight="Bold" Height="30"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="GESTIONAR SUSCRIPCIÓN" Height="40" Background="Transparent" BorderBrush="White" BorderThickness="1" Foreground="White" Margin="0,0,0,10"/>
+                    <Button Content="CERRAR SESIÓN EN TODOS LOS DISPOSITIVOS" Height="40" Background="Transparent" BorderBrush="#DC3545" BorderThickness="1" Foreground="#DC3545" Margin="0,20,0,0"/>
+                </StackPanel>
+
+                <Button Content="GUARDAR CAMBIOS" Click="BtnGuardar_Click" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                        Height="45" Width="200" Margin="0,480,0,0"
+                        Background="#00E5FF" Foreground="#121212" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="5"/>
@@ -58,33 +168,7 @@
                     </Button.Resources>
                 </Button>
 
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
-
-    <Window.Resources>
-        <Style x:Key="MenuButton" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border Background="{TemplateBinding Background}" Padding="10,5">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter Property="Foreground" Value="#00E5FF"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Background" Value="#900000"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
 </Window>
