@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>icono.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\juego1.jpg" />
+    <None Remove="Assets\juego2.jpg" />
+    <None Remove="Assets\juego3.jpg" />
+    <None Remove="Assets\juego4.jpg" />
+    <None Remove="Assets\juego6.jpg" />
+    <None Remove="Assets\juego7.jpg" />
+    <None Remove="Assets\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="icono.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.5.0" />
+    <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\logo.ico" />
+    <Resource Include="Assets\juego1.jpg" />
+    <Resource Include="Assets\juego2.jpg" />
+    <Resource Include="Assets\juego3.jpg" />
+    <Resource Include="Assets\juego4.jpg" />
+    <Resource Include="Assets\juego6.jpg" />
+    <Resource Include="Assets\juego7.jpg" />
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+</Project>
