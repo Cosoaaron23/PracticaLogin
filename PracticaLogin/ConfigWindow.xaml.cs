@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PracticaLogin
 {
@@ -7,62 +8,76 @@ namespace PracticaLogin
     {
         private string usuarioActual;
 
-        // CONSTRUCTOR MODIFICADO: Ahora pide el nombre del usuario
         public ConfigWindow(string usuario)
         {
             InitializeComponent();
-
             this.usuarioActual = usuario;
             CargarDatosCuenta();
         }
 
-        // Método para rellenar los datos de la pantalla Cuenta
         private void CargarDatosCuenta()
         {
             lblUsuarioCuenta.Text = usuarioActual.ToUpper();
-
-            // Buscamos la ID en la base de datos
             string id = DatabaseHelper.GetUserId(usuarioActual);
             lblIdCuenta.Text = "ID: #" + id + "-AKAY";
         }
 
-        // --- BOTONES DE LA PESTAÑA CUENTA ---
+        // --- GESTIÓN DE SUSCRIPCIÓN ---
+        private void BtnGestionarSuscripcion_Click(object sender, RoutedEventArgs e)
+        {
+            string plan = DatabaseHelper.GetSubscription(usuarioActual);
+            string titulo = "";
+            string mensaje = "";
+            SolidColorBrush color = Brushes.Gray;
 
-        // 1. Mostrar el hueco para escribir la contraseña
+            switch (plan)
+            {
+                case "Cielo":
+                    titulo = "PLAN ACTUAL: EL CIELO";
+                    color = new SolidColorBrush(Color.FromRgb(79, 195, 247));
+                    mensaje = "✔ Acceso básico\n✔ Con anuncios\nEstado: GRATIS";
+                    break;
+                case "Limbo":
+                    titulo = "PLAN ACTUAL: LIMBO";
+                    color = new SolidColorBrush(Color.FromRgb(255, 152, 0));
+                    mensaje = "✔ Sin Publicidad\n✔ Multijugador\nEstado: ACTIVO (4.99€/mes)";
+                    break;
+                case "Infierno":
+                    titulo = "PLAN ACTUAL: EL INFIERNO";
+                    color = new SolidColorBrush(Color.FromRgb(211, 47, 47));
+                    mensaje = "★ ACCESO TOTAL\n★ Skins Demon\n★ Descargas Ultra\nEstado: ACTIVO (14.99€/mes)";
+                    break;
+                default:
+                    titulo = "SIN SUSCRIPCIÓN";
+                    color = Brushes.Gray;
+                    mensaje = "No tienes suscripción activa.";
+                    break;
+            }
+
+            CustomMessageBox info = new CustomMessageBox(titulo, mensaje, color);
+            info.btnConfirmar.Content = "ENTENDIDO";
+            info.ShowDialog();
+        }
+
+        // --- CAMBIO DE CONTRASEÑA ---
         private void BtnMostrarCambioPass_Click(object sender, RoutedEventArgs e)
         {
-            if (pnlCambioPass.Visibility == Visibility.Collapsed)
-                pnlCambioPass.Visibility = Visibility.Visible;
-            else
-                pnlCambioPass.Visibility = Visibility.Collapsed;
+            if (pnlCambioPass.Visibility == Visibility.Collapsed) pnlCambioPass.Visibility = Visibility.Visible;
+            else pnlCambioPass.Visibility = Visibility.Collapsed;
         }
 
-        // 2. Guardar la contraseña en la BD
         private void BtnConfirmarPass_Click(object sender, RoutedEventArgs e)
         {
-            string nuevaPass = txtNuevaPass.Password;
-
-            if (string.IsNullOrEmpty(nuevaPass))
+            if (string.IsNullOrEmpty(txtNuevaPass.Password)) { MessageBox.Show("Contraseña vacía"); return; }
+            if (DatabaseHelper.UpdatePassword(usuarioActual, txtNuevaPass.Password))
             {
-                MessageBox.Show("La contraseña no puede estar vacía.");
-                return;
+                MessageBox.Show("Contraseña actualizada.");
+                pnlCambioPass.Visibility = Visibility.Collapsed; txtNuevaPass.Clear();
             }
-
-            bool exito = DatabaseHelper.UpdatePassword(usuarioActual, nuevaPass);
-
-            if (exito)
-            {
-                MessageBox.Show("¡Contraseña actualizada con éxito!", "Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
-                pnlCambioPass.Visibility = Visibility.Collapsed;
-                txtNuevaPass.Clear();
-            }
-            else
-            {
-                MessageBox.Show("Error al actualizar la contraseña.");
-            }
+            else MessageBox.Show("Error al actualizar.");
         }
 
-        // --- NAVEGACIÓN DEL MENÚ ---
+        // --- NAVEGACIÓN Y CONTROLES ---
         private void BtnGeneral_Click(object sender, RoutedEventArgs e) { OcultarTodos(); pnlGeneral.Visibility = Visibility.Visible; }
         private void BtnGraficos_Click(object sender, RoutedEventArgs e) { OcultarTodos(); pnlGraficos.Visibility = Visibility.Visible; }
         private void BtnSonido_Click(object sender, RoutedEventArgs e) { OcultarTodos(); pnlSonido.Visibility = Visibility.Visible; }
@@ -70,27 +85,12 @@ namespace PracticaLogin
 
         private void OcultarTodos()
         {
-            pnlGeneral.Visibility = Visibility.Collapsed;
-            pnlGraficos.Visibility = Visibility.Collapsed;
-            pnlSonido.Visibility = Visibility.Collapsed;
-            pnlCuenta.Visibility = Visibility.Collapsed;
+            pnlGeneral.Visibility = Visibility.Collapsed; pnlGraficos.Visibility = Visibility.Collapsed;
+            pnlSonido.Visibility = Visibility.Collapsed; pnlCuenta.Visibility = Visibility.Collapsed;
         }
 
-        // --- BOTONES GENÉRICOS ---
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Configuración guardada correctamente.");
-            this.Close();
-        }
-
-        private void BtnVolver_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left) this.DragMove();
-        }
+        private void BtnGuardar_Click(object sender, RoutedEventArgs e) { MessageBox.Show("Guardado."); this.Close(); }
+        private void BtnVolver_Click(object sender, RoutedEventArgs e) { this.Close(); }
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) this.DragMove(); }
     }
 }

@@ -17,9 +17,12 @@ namespace PracticaLogin
             catch (Exception ex)
             {
                 MessageBox.Show("Error BD: " + ex.Message);
+                lblMensajeLogin.Text = "Sin conexión a BD";
+                lblMensajeLogin.Foreground = Brushes.Red;
             }
         }
 
+        // --- CONTROLES VENTANA ---
         private void TopBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -36,7 +39,7 @@ namespace PracticaLogin
             Application.Current.Shutdown();
         }
 
-        // === BOTÓN LOGIN ===
+        // --- BOTÓN LOGIN (con gestión de bloqueo) ---
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuarioLogin.Text;
@@ -53,14 +56,13 @@ namespace PracticaLogin
 
             if (resultado == "OK")
             {
-                // AQUI ESTA EL CAMBIO: Enviamos el usuario (user) al Home
                 HomeWindow home = new HomeWindow(user);
                 home.Show();
                 this.Close();
             }
             else if (resultado == "NO_USER")
             {
-                lblMensajeLogin.Text = "Usuario no existe";
+                lblMensajeLogin.Text = "El usuario no existe";
                 lblMensajeLogin.Foreground = Brushes.Red;
             }
             else if (resultado.StartsWith("WRONG_PASS"))
@@ -81,7 +83,7 @@ namespace PracticaLogin
             }
         }
 
-        // === BOTÓN REGISTRO ===
+        // --- BOTÓN REGISTRO ---
         private void BtnCrearCuenta_Click(object sender, RoutedEventArgs e)
         {
             string nombre = txtRegNombre.Text;
@@ -110,6 +112,7 @@ namespace PracticaLogin
             }
         }
 
+        // --- NAVEGACIÓN ENTRE PANELES ---
         private void IrARegistro_Click(object sender, RoutedEventArgs e)
         {
             pnlLogin.Visibility = Visibility.Collapsed;
@@ -122,6 +125,11 @@ namespace PracticaLogin
             pnlRegistro.Visibility = Visibility.Collapsed;
             pnlLogin.Visibility = Visibility.Visible;
             lblMensajeRegistro.Text = "";
+        }
+
+        private void BtnSalir_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }

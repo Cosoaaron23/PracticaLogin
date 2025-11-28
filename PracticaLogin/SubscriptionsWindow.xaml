@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="ELIGE TU DESTINO" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" />
+            <TextBlock Text="ELIGE TU DESTINO" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
             <TextBlock Text="Mejora tu experiencia en AKAY Launcher" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" Margin="0,2,0,0"/>
         </StackPanel>
 
@@ -25,7 +25,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Margin="8" Background="#1E1E1E" CornerRadius="10" BorderBrush="#4FC3F7" BorderThickness="1">
+            <Border x:Name="BorderCielo" Grid.Column="0" Margin="8" Background="#1E1E1E" CornerRadius="10" BorderBrush="#4FC3F7" BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect Color="#4FC3F7" BlurRadius="10" ShadowDepth="0" Opacity="0.2"/>
                 </Border.Effect>
@@ -43,12 +43,13 @@
                         <TextBlock Text="✔ Descargas estándar" Foreground="White" Margin="0,0,0,8" FontSize="11"/>
                     </StackPanel>
 
-                    <Button Content="PLAN ACTUAL" Background="Transparent" BorderBrush="#4FC3F7" BorderThickness="1" Foreground="#4FC3F7" 
+                    <Button x:Name="BtnCielo" Content="SELECCIONAR" Click="BtnCielo_Click" 
+                            Background="Transparent" BorderBrush="#4FC3F7" BorderThickness="1" Foreground="#4FC3F7" 
                             Height="35" Margin="0,25,0,0" Cursor="Hand" FontWeight="Bold" FontSize="11"/>
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="1" Margin="8" Background="#252525" CornerRadius="10" BorderBrush="#FF9800" BorderThickness="1">
+            <Border x:Name="BorderLimbo" Grid.Column="1" Margin="8" Background="#252525" CornerRadius="10" BorderBrush="#FF9800" BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect Color="#FF9800" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
                 </Border.Effect>
@@ -66,7 +67,8 @@
                         <TextBlock Text="✔ Descargas Rápidas" Foreground="White" Margin="0,0,0,8" FontSize="11"/>
                     </StackPanel>
 
-                    <Button Content="SELECCIONAR" Click="BtnLimbo_Click" Background="#FF9800" BorderThickness="0" Foreground="Black" 
+                    <Button x:Name="BtnLimbo" Content="SELECCIONAR" Click="BtnLimbo_Click" 
+                            Background="#FF9800" BorderThickness="0" Foreground="Black" 
                             Height="35" Margin="0,25,0,0" Cursor="Hand" FontWeight="Bold" FontSize="11">
                         <Button.Resources>
                             <Style TargetType="Border">
@@ -77,7 +79,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Column="2" Margin="8" Background="#1E1E1E" CornerRadius="10" BorderBrush="#D32F2F" BorderThickness="2">
+            <Border x:Name="BorderInfierno" Grid.Column="2" Margin="8" Background="#1E1E1E" CornerRadius="10" BorderBrush="#D32F2F" BorderThickness="2">
                 <Border.Effect>
                     <DropShadowEffect Color="#D32F2F" BlurRadius="20" ShadowDepth="0" Opacity="0.5"/>
                 </Border.Effect>
@@ -97,10 +99,12 @@
                         <TextBlock Text="✔ Acceso Anticipado" Foreground="#D32F2F" FontWeight="Bold" Margin="0,0,0,8" FontSize="11"/>
                         <TextBlock Text="✔ Skins Exclusivas" Foreground="White" Margin="0,0,0,8" FontSize="11"/>
                         <TextBlock Text="✔ Descargas ULTRA" Foreground="#D32F2F" FontWeight="Bold" Margin="0,0,0,8" FontSize="11"/>
+                        <TextBlock Text="✔ Soporte Prioritario 24/7" Foreground="White" Margin="0,0,0,8" FontSize="11"/>
                     </StackPanel>
 
-                    <Button Content="CONSEGUIR PODER" Click="BtnInfierno_Click" Background="#D32F2F" BorderThickness="0" Foreground="White" 
-                            Height="35" Margin="0,15,0,0" Cursor="Hand" FontWeight="Bold" FontSize="11">
+                    <Button x:Name="BtnInfierno" Content="CONSEGUIR PODER" Click="BtnInfierno_Click" 
+                            Background="#D32F2F" BorderThickness="0" Foreground="White" 
+                            Height="35" Margin="0,5,0,0" Cursor="Hand" FontWeight="Bold" FontSize="11">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="5"/>

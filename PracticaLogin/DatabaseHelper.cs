@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Data;
-using MySql.Data.MySqlClient; // Asegúrate de tener el paquete NuGet MySql.Data instalado
+using MySql.Data.MySqlClient;
 
 namespace PracticaLogin
 {
     public class DatabaseHelper
     {
-        // =========================================================================
-        // CONFIGURACIÓN DE CONEXIÓN
-        // =========================================================================
-        // ¡OJO! Pon tu contraseña real de MySQL aquí abajo
+        // -----------------------------------------------------------
+        // CONFIGURACIÓN (Pon tu contraseña real aquí)
+        // -----------------------------------------------------------
         private const string ConnectionString = "server=localhost;database=PracticaLogin;uid=root;pwd=1234;";
 
-        // 1. INICIALIZAR (Probar conexión al arrancar)
+        // 1. Inicializar
         public static void InitializeDatabase()
         {
             try
@@ -20,7 +19,6 @@ namespace PracticaLogin
                 using (var connection = new MySqlConnection(ConnectionString))
                 {
                     connection.Open();
-                    // Si llega aquí sin error, la conexión es correcta
                 }
             }
             catch (Exception ex)
@@ -29,7 +27,7 @@ namespace PracticaLogin
             }
         }
 
-        // 2. REGISTRAR USUARIO (Con todos los campos)
+        // 2. Registrar
         public static bool RegisterUser(string nombre, string apellidos, string user, string pass, string email, string tlf, string cp)
         {
             try
@@ -37,20 +35,16 @@ namespace PracticaLogin
                 using (var connection = new MySqlConnection(ConnectionString))
                 {
                     connection.Open();
-
-                    // A) Verificar si el usuario ya existe
                     string checkSql = "SELECT COUNT(*) FROM Usuarios WHERE Username = @u";
                     using (var checkCmd = new MySqlCommand(checkSql, connection))
                     {
                         checkCmd.Parameters.AddWithValue("@u", user);
-                        long count = (long)checkCmd.ExecuteScalar();
-
-                        if (count > 0) return false; // Ya existe, no registramos
+                        if ((long)checkCmd.ExecuteScalar() > 0) return false;
                     }
 
-                    // B) Insertar nuevo usuario (Iniciamos Intentos en 0 y BloqueadoHasta en NULL)
-                    string insertSql = "INSERT INTO Usuarios (Nombre, Apellidos, Username, Password, Email, Telefono, CodigoPostal, Intentos, BloqueadoHasta) " +
-                                       "VALUES (@nom, @ape, @u, @p, @mail, @tlf, @cp, 0, NULL)";
+                    // Insertamos con Suscripcion = 'Cielo' (Gratis) por defecto
+                    string insertSql = "INSERT INTO Usuarios (Nombre, Apellidos, Username, Password, Email, Telefono, CodigoPostal, Intentos, BloqueadoHasta, Suscripcion) " +
+                                       "VALUES (@nom, @ape, @u, @p, @mail, @tlf, @cp, 0, NULL, 'Cielo')";
 
                     using (var insertCmd = new MySqlCommand(insertSql, connection))
                     {
@@ -61,20 +55,15 @@ namespace PracticaLogin
                         insertCmd.Parameters.AddWithValue("@mail", email);
                         insertCmd.Parameters.AddWithValue("@tlf", tlf);
                         insertCmd.Parameters.AddWithValue("@cp", cp);
-
                         insertCmd.ExecuteNonQuery();
                     }
-                    return true; // Registro exitoso
+                    return true;
                 }
             }
-            catch
-            {
-                return false; // Fallo técnico
-            }
+            catch { return false; }
         }
 
-        // 3. VALIDAR LOGIN (Con sistema de bloqueo de seguridad)
-        // Retorna códigos: "OK", "NO_USER", "WRONG_PASS|intentos", "LOCKED|minutos"
+        // 3. Login
         public static string ValidateUser(string user, string pass)
         {
             try
@@ -82,10 +71,7 @@ namespace PracticaLogin
                 using (var connection = new MySqlConnection(ConnectionString))
                 {
                     connection.Open();
-
-                    // A) Buscar datos del usuario
                     string sql = "SELECT Id, Password, Intentos, BloqueadoHasta FROM Usuarios WHERE Username = @u";
-
                     int intentos = 0;
                     DateTime? bloqueadoHasta = null;
                     string passwordReal = "";
@@ -95,32 +81,20 @@ namespace PracticaLogin
                         cmd.Parameters.AddWithValue("@u", user);
                         using (var reader = cmd.ExecuteReader())
                         {
-                            if (!reader.Read()) return "NO_USER"; // El usuario no existe
-
+                            if (!reader.Read()) return "NO_USER";
                             passwordReal = reader["Password"].ToString();
                             intentos = Convert.ToInt32(reader["Intentos"]);
-
-                            // Comprobar si hay fecha de bloqueo
-                            if (reader["BloqueadoHasta"] != DBNull.Value)
-                            {
-                                bloqueadoHasta = Convert.ToDateTime(reader["BloqueadoHasta"]);
-                            }
+                            if (reader["BloqueadoHasta"] != DBNull.Value) bloqueadoHasta = Convert.ToDateTime(reader["BloqueadoHasta"]);
                         }
                     }
 
-                    // B) Verificar si está bloqueado actualmente por tiempo
                     if (bloqueadoHasta != null && bloqueadoHasta > DateTime.Now)
                     {
-                        TimeSpan tiempoRestante = bloqueadoHasta.Value - DateTime.Now;
-                        // Devolvemos código LOCKED y los minutos que faltan
-                        return $"LOCKED|{Math.Ceiling(tiempoRestante.TotalMinutes)}";
+                        return $"LOCKED|{Math.Ceiling((bloqueadoHasta.Value - DateTime.Now).TotalMinutes)}";
                     }
 
-                    // C) Verificar Contraseña
                     if (pass == passwordReal)
                     {
-                        // -- CONTRASEÑA CORRECTA --
-                        // Reseteamos contador a 0 y quitamos bloqueo
                         string resetSql = "UPDATE Usuarios SET Intentos = 0, BloqueadoHasta = NULL WHERE Username = @u";
                         using (var updateCmd = new MySqlCommand(resetSql, connection))
                         {
@@ -131,44 +105,25 @@ namespace PracticaLogin
                     }
                     else
                     {
-                        // -- CONTRASEÑA INCORRECTA --
                         intentos++;
-                        string updateSql = "";
+                        string updateSql = (intentos >= 3) ?
+                            "UPDATE Usuarios SET Intentos = @i, BloqueadoHasta = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE Username = @u" :
+                            "UPDATE Usuarios SET Intentos = @i WHERE Username = @u";
 
-                        if (intentos >= 3)
+                        using (var lockCmd = new MySqlCommand(updateSql, connection))
                         {
-                            // Superó los 3 intentos: Bloqueamos por 5 minutos
-                            updateSql = "UPDATE Usuarios SET Intentos = @i, BloqueadoHasta = DATE_ADD(NOW(), INTERVAL 5 MINUTE) WHERE Username = @u";
-                            using (var lockCmd = new MySqlCommand(updateSql, connection))
-                            {
-                                lockCmd.Parameters.AddWithValue("@i", intentos);
-                                lockCmd.Parameters.AddWithValue("@u", user);
-                                lockCmd.ExecuteNonQuery();
-                            }
-                            return "LOCKED|5";
+                            lockCmd.Parameters.AddWithValue("@i", intentos);
+                            lockCmd.Parameters.AddWithValue("@u", user);
+                            lockCmd.ExecuteNonQuery();
                         }
-                        else
-                        {
-                            // Aún tiene intentos: Solo sumamos el contador
-                            updateSql = "UPDATE Usuarios SET Intentos = @i WHERE Username = @u";
-                            using (var incCmd = new MySqlCommand(updateSql, connection))
-                            {
-                                incCmd.Parameters.AddWithValue("@i", intentos);
-                                incCmd.Parameters.AddWithValue("@u", user);
-                                incCmd.ExecuteNonQuery();
-                            }
-                            return $"WRONG_PASS|{3 - intentos}"; // Devolvemos intentos restantes
-                        }
+                        return (intentos >= 3) ? "LOCKED|5" : $"WRONG_PASS|{3 - intentos}";
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                return "ERROR: " + ex.Message;
-            }
+            catch (Exception ex) { return "ERROR: " + ex.Message; }
         }
 
-        // 4. OBTENER ID DEL USUARIO (Para la pestaña Cuenta)
+        // 4. Obtener ID
         public static string GetUserId(string username)
         {
             try
@@ -181,16 +136,14 @@ namespace PracticaLogin
                     {
                         cmd.Parameters.AddWithValue("@u", username);
                         object result = cmd.ExecuteScalar();
-
-                        if (result != null) return result.ToString();
+                        return result != null ? result.ToString() : "0000";
                     }
                 }
-                return "Unknown";
             }
             catch { return "ERR"; }
         }
 
-        // 5. CAMBIAR CONTRASEÑA (Para la pestaña Cuenta)
+        // 5. Cambiar Contraseña
         public static bool UpdatePassword(string username, string newPassword)
         {
             try
@@ -203,13 +156,55 @@ namespace PracticaLogin
                     {
                         cmd.Parameters.AddWithValue("@p", newPassword);
                         cmd.Parameters.AddWithValue("@u", username);
-                        int rows = cmd.ExecuteNonQuery();
-
-                        return rows > 0; // True si se cambió algo
+                        return cmd.ExecuteNonQuery() > 0;
                     }
                 }
             }
             catch { return false; }
+        }
+
+        // 6. ACTUALIZAR SUSCRIPCIÓN (NUEVO)
+        public static bool UpdateSubscription(string username, string plan)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    string sql = "UPDATE Usuarios SET Suscripcion = @plan WHERE Username = @u";
+                    using (var cmd = new MySqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@plan", plan);
+                        cmd.Parameters.AddWithValue("@u", username);
+                        return cmd.ExecuteNonQuery() > 0;
+                    }
+                }
+            }
+            catch { return false; }
+        }
+
+        // 7. OBTENER SUSCRIPCIÓN ACTUAL (NUEVO)
+        public static string GetSubscription(string username)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    string sql = "SELECT Suscripcion FROM Usuarios WHERE Username = @u";
+                    using (var cmd = new MySqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@u", username);
+                        object result = cmd.ExecuteScalar();
+                        // Si es null o está vacío, devolvemos "Cielo" (Gratis)
+                        if (result == null || result == DBNull.Value || string.IsNullOrEmpty(result.ToString()))
+                            return "Cielo";
+
+                        return result.ToString();
+                    }
+                }
+            }
+            catch { return "Error"; }
         }
     }
 }

@@ -5,7 +5,7 @@ namespace PracticaLogin
 {
     public partial class CustomMessageBox : Window
     {
-        // Constructor modificado para recibir Título, Mensaje y Color
+        // Constructor especial que recibe los datos y el Color
         public CustomMessageBox(string titulo, string mensaje, Brush colorTema)
         {
             InitializeComponent();
@@ -13,11 +13,9 @@ namespace PracticaLogin
             lblTitulo.Text = titulo.ToUpper();
             lblMensaje.Text = mensaje;
 
-            // Aplicamos el color del tema al borde y al botón de confirmar
             MainBorder.BorderBrush = colorTema;
             btnConfirmar.Background = colorTema;
 
-            // Efecto de sombra del título también del color del tema
             lblTitulo.Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
                 Color = ((SolidColorBrush)colorTema).Color,
@@ -29,13 +27,13 @@ namespace PracticaLogin
 
         private void BtnConfirmar_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true; // Esto equivale al "Yes"
+            this.DialogResult = true;
             this.Close();
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Esto equivale al "No"
+            this.DialogResult = false;
             this.Close();
         }
     }

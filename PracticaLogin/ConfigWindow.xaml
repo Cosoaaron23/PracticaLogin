@@ -154,7 +154,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Button Content="GESTIONAR SUSCRIPCIÓN" Height="40" Background="Transparent" BorderBrush="White" BorderThickness="1" Foreground="White" Margin="0,0,0,10"/>
+                    <Button Content="GESTIONAR SUSCRIPCIÓN" Click="BtnGestionarSuscripcion_Click" Height="40" Background="Transparent" BorderBrush="White" BorderThickness="1" Foreground="White" Margin="0,0,0,10"/>
                     <Button Content="CERRAR SESIÓN EN TODOS LOS DISPOSITIVOS" Height="40" Background="Transparent" BorderBrush="#DC3545" BorderThickness="1" Foreground="#DC3545" Margin="0,20,0,0"/>
                 </StackPanel>
 

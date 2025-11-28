@@ -10,6 +10,7 @@
         Background="Black">
 
     <Window.Resources>
+
         <Style x:Key="WindowControlBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#888888"/>
@@ -55,13 +56,13 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0,0,0,2">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0,0,0,2">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,5"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Foreground" Value="#00E5FF"/>
-                                <Setter Property="BorderBrush" Value="#B71C1C"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="#B71C1C"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -115,116 +116,203 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="PopupMenuItem" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="#4000E5FF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.Background>
-            <ImageBrush ImageSource="/Assets/background.jpg" Stretch="UniformToFill" Opacity="0.5"/>
-        </Grid.Background>
+        <Grid>
+            <Image x:Name="BackgroundImage" Source="/Assets/background.jpg" Stretch="UniformToFill" Opacity="0.5" RenderOptions.BitmapScalingMode="HighQuality">
+                <Image.RenderTransform>
+                    <TranslateTransform x:Name="BackgroundTranslateTransform"/>
+                </Image.RenderTransform>
+            </Image>
+            <Rectangle Fill="#88000000"/>
+        </Grid>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="60"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="260"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#E6050505" MouseDown="TopBar_MouseDown">
-            <Grid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
-                    <Image Source="/Assets/logo.ico" Height="16" Margin="0,0,10,0"/>
-                    <TextBlock Text="AKAY LAUNCHER" Foreground="#666666" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#E6050505" MouseDown="TopBar_MouseDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <Image Source="/Assets/logo.ico" Height="16" Margin="0,0,10,0"/>
+                        <TextBlock Text="AKAY LAUNCHER" Foreground="#666666" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="—" Click="BtnMinimizar_Click" Style="{StaticResource WindowControlBtn}"/>
+                        <Button Content="◻" Click="BtnMaximizar_Click" Style="{StaticResource WindowControlBtn}"/>
+                        <Button Content="✕" Click="BtnCerrarApp_Click" Style="{StaticResource CloseBtn}" Width="45"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#333333" BorderThickness="0,1,0,1" Background="#66000000">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="25,0,0,0">
+                        <Image Source="/Assets/logo.png" Height="40" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Button Content="TIENDA" Click="BtnTienda_Click" Style="{StaticResource TopMenuButton}"/>
+                        <Button Content="SUSCRIPCIONES" Click="BtnSuscripciones_Click" Style="{StaticResource TopMenuButton}"/>
+                        <Button Content="COMUNIDAD" Click="BtnComunidad_Click" Style="{StaticResource TopMenuButton}"/>
+                        <Button Content="SOPORTE" Click="BtnSoporte_Click" Style="{StaticResource TopMenuButton}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,30,0">
+
+                        <Border x:Name="UserProfileBorder" CornerRadius="20" BorderBrush="#00E5FF" BorderThickness="1" 
+                                Padding="10,5" Background="#44000000" Cursor="Hand" MouseLeftButtonUp="UserProfile_Click">
+                            <StackPanel Orientation="Horizontal">
+
+                                <Border x:Name="MainStatusIndicator" Width="12" Height="12" CornerRadius="6" Background="#23A559" Margin="0,0,10,0" BorderBrush="Black" BorderThickness="1"/>
+
+                                <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                                <TextBlock Text="▼" Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Popup x:Name="UserMenuPopup" PlacementTarget="{Binding ElementName=UserProfileBorder}" 
+                               Placement="Bottom" VerticalOffset="-10" 
+                               StaysOpen="False" AllowsTransparency="True" PopupAnimation="Slide">
+
+                            <Border Background="#18191C" CornerRadius="5" BorderBrush="#202225" BorderThickness="1" Width="220">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="5" Opacity="0.5"/>
+                                </Border.Effect>
+
+                                <StackPanel Margin="0,5">
+                                    <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoOnline_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="10" Height="10" CornerRadius="5" Background="#23A559" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Online"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoAusente_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="10" Height="10" CornerRadius="5" Background="#F0B232" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Ausente"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoInvisible_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="10" Height="10" CornerRadius="5" Background="#747F8D" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Invisible"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Separator Background="#333" Margin="10,5"/>
+
+                                    <Button Style="{StaticResource PopupMenuItem}" Click="BtnConfiguracion_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⚙" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Ajustes de Cuenta"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Separator Background="#333" Margin="10,5"/>
+
+                                    <Button Style="{StaticResource PopupMenuItem}" Click="BtnLogout_Click">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="🚪" Margin="0,0,10,0" Foreground="#F04747"/>
+                                            <TextBlock Text="Cerrar Sesión" Foreground="#F04747" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="2" Grid.Column="0" Margin="20,20,0,20" CornerRadius="15" BorderBrush="#333333" BorderThickness="1" Background="#CC050505">
+                <StackPanel VerticalAlignment="Top" Margin="10,30,10,0">
+                    <TextBlock Text="BIBLIOTECA" Foreground="#666666" FontSize="12" FontWeight="Bold" Margin="15,0,0,10"/>
+                    <Button Content="DESTACADOS" Click="BtnDestacados_Click" Style="{StaticResource SideMenuButton}"/>
+                    <Button Content="MIS JUEGOS" Click="BtnMisJuegos_Click" Style="{StaticResource SideMenuButton}"/>
+
+                    <Separator Background="#333333" Margin="10,20"/>
+
+                    <TextBlock Text="AKAY v1.0" Foreground="#444" HorizontalAlignment="Center" FontSize="10" Margin="0,20,0,0"/>
                 </StackPanel>
+            </Border>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="—" Click="BtnMinimizar_Click" Style="{StaticResource WindowControlBtn}"/>
-                    <Button Content="◻" Click="BtnMaximizar_Click" Style="{StaticResource WindowControlBtn}"/>
-                    <Button Content="✕" Click="BtnCerrarApp_Click" Style="{StaticResource CloseBtn}" Width="45"/>
-                </StackPanel>
-            </Grid>
-        </Border>
+            <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="MainScrollViewer" 
+                              VerticalScrollBarVisibility="Auto" Margin="10,0,0,0"
+                              ScrollChanged="MainScrollViewer_ScrollChanged">
+                <WrapPanel HorizontalAlignment="Center" Margin="0,30,0,30">
 
-        <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#333333" BorderThickness="0,1,0,1" Background="#66000000">
-            <Grid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="25,0,0,0">
-                    <Image Source="/Assets/logo.png" Height="40" RenderOptions.BitmapScalingMode="HighQuality"/>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Button Content="TIENDA" Click="BtnTienda_Click" Style="{StaticResource TopMenuButton}"/>
-
-                    <Button Content="SUSCRIPCIONES" Click="BtnSuscripciones_Click" Style="{StaticResource TopMenuButton}"/>
-
-                    <Button Content="COMUNIDAD" Click="BtnComunidad_Click" Style="{StaticResource TopMenuButton}"/>
-                    <Button Content="SOPORTE" Click="BtnSoporte_Click" Style="{StaticResource TopMenuButton}"/>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,30,0">
-                    <Border CornerRadius="15" BorderBrush="#00E5FF" BorderThickness="1" Padding="15,5" Background="#33000000">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <Button x:Name="btnLogout" Content="⏻" Click="BtnLogout_Click" 
-                                    Background="Transparent" Foreground="#FF4444" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Cerrar Sesión" FontSize="16"/>
-                        </StackPanel>
+                    <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego1_Click">
+                        <Grid>
+                            <Image Source="/Assets/juego1.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#CC000000" VerticalAlignment="Bottom" Height="35">
+                                <TextBlock Text="INSTALADO" Foreground="#00E5FF" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
                     </Border>
-                </StackPanel>
-            </Grid>
-        </Border>
 
-        <Border Grid.Row="2" Grid.Column="0" Margin="20,20,0,20" CornerRadius="15" BorderBrush="#333333" BorderThickness="1" Background="#CC050505">
-            <StackPanel VerticalAlignment="Top" Margin="10,30,10,0">
-                <TextBlock Text="BIBLIOTECA" Foreground="#666666" FontSize="12" FontWeight="Bold" Margin="15,0,0,10"/>
-                <Button Content="DESTACADOS" Click="BtnDestacados_Click" Style="{StaticResource SideMenuButton}"/>
-                <Button Content="MIS JUEGOS" Click="BtnMisJuegos_Click" Style="{StaticResource SideMenuButton}"/>
+                    <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego2_Click">
+                        <Image Source="/Assets/juego2.jpg" Stretch="UniformToFill"/>
+                    </Border>
 
-                <Separator Background="#333333" Margin="10,20"/>
+                    <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego3_Click">
+                        <Image Source="/Assets/juego3.jpg" Stretch="UniformToFill"/>
+                    </Border>
 
-                <TextBlock Text="SISTEMA" Foreground="#666666" FontSize="12" FontWeight="Bold" Margin="15,0,0,10"/>
-                <Button x:Name="btnConfiguracion" Content="CONFIGURACION" Click="BtnConfiguracion_Click" Style="{StaticResource SideMenuButton}"/>
-            </StackPanel>
-        </Border>
+                    <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego4_Click">
+                        <Image Source="/Assets/juego4.jpg" Stretch="UniformToFill"/>
+                    </Border>
 
-        <ScrollViewer Grid.Row="2" Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="10,0,0,0">
-            <WrapPanel HorizontalAlignment="Center" Margin="0,30,0,30">
+                    <Border Style="{StaticResource GameCard}" BorderBrush="#FF4081" BorderThickness="2" MouseLeftButtonDown="Juego5_Click">
+                        <Grid>
+                            <Image Source="/Assets/juego7.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#FF4081" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="25" CornerRadius="0,0,0,8">
+                                <TextBlock Text="NEW" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                            </Border>
+                        </Grid>
+                    </Border>
 
-                <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego1_Click">
-                    <Grid>
-                        <Image Source="/Assets/juego1.jpg" Stretch="UniformToFill"/>
-                        <Border Background="#CC000000" VerticalAlignment="Bottom" Height="35">
-                            <TextBlock Text="INSTALADO" Foreground="#00E5FF" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </Grid>
-                </Border>
+                    <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego6_Click">
+                        <Image Source="/Assets/juego6.jpg" Stretch="UniformToFill"/>
+                    </Border>
 
-                <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego2_Click">
-                    <Image Source="/Assets/juego2.jpg" Stretch="UniformToFill"/>
-                </Border>
-
-                <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego3_Click">
-                    <Image Source="/Assets/juego3.jpg" Stretch="UniformToFill"/>
-                </Border>
-
-                <Border Style="{StaticResource GameCard}">
-                    <Image Source="/Assets/juego4.jpg" Stretch="UniformToFill"/>
-                </Border>
-
-                <Border Style="{StaticResource GameCard}" BorderBrush="#FF4081" BorderThickness="2" MouseLeftButtonDown="Juego5_Click">
-                    <Grid>
-                        <Image Source="/Assets/juego7.jpg" Stretch="UniformToFill"/>
-                        <Border Background="#FF4081" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="25" CornerRadius="0,0,0,8">
-                            <TextBlock Text="NEW" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
-                        </Border>
-                    </Grid>
-                </Border>
-
-                <Border Style="{StaticResource GameCard}">
-                    <Image Source="/Assets/juego6.jpg" Stretch="UniformToFill"/>
-                </Border>
-
-            </WrapPanel>
-        </ScrollViewer>
+                </WrapPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>
