@@ -7,6 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>icono.ico</ApplicationIcon>
+    <PlatformTarget>x64</PlatformTarget>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	  <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="9.5.0" />
     <PackageReference Include="System.Data.SQLite" Version="2.0.2" />
   </ItemGroup>
 
