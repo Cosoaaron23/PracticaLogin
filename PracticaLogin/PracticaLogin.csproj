@@ -21,9 +21,13 @@
     <None Remove="Assets\juego6.jpg" />
     <None Remove="Assets\juego7.jpg" />
     <None Remove="Assets\logo.png" />
+    <None Remove="e_sqlite3.dll" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="e_sqlite3.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="icono.ico" />
   </ItemGroup>
 
