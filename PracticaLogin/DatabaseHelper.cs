@@ -1,269 +1,299 @@
 ﻿using System;
-using System.IO;
 using System.Data;
-using System.Data.SQLite;
+using MySql.Data.MySqlClient;
+using System.Windows;
 
 namespace PracticaLogin
 {
-    public class DatabaseHelper
+    public static class DatabaseHelper
     {
-        // =========================================================================
-        // CONFIGURACIÓN DE CONEXIÓN (PORTABLE - ARCHIVO LOCAL)
-        // =========================================================================
-        private const string DbName = "AkayData.db";
-        private const string ConnectionString = "Data Source=" + DbName + ";Version=3;";
+        // Cadena de conexión (Asegúrate que XAMPP esté corriendo)
+        private static string connectionString = "Server=localhost;Database=akay_data;Uid=root;Pwd=1234;";
 
-        // 1. INICIALIZAR (Crea el archivo de base de datos y la tabla si no existen)
+        // --- 1. INICIALIZAR BASE DE DATOS ---
+        // Soluciona el error: 'DatabaseHelper' no contiene una definición para 'InitializeDatabase'
         public static void InitializeDatabase()
         {
             try
             {
-                // 1. Si el archivo no existe, lo creamos
-                if (!File.Exists(DbName))
-                {
-                    SQLiteConnection.CreateFile(DbName);
-                }
-
-                // 2. Abrimos conexión y creamos la tabla si es la primera vez
-                using (var connection = new SQLiteConnection(ConnectionString))
+                using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-
-                    string sql = @"
-                        CREATE TABLE IF NOT EXISTS Usuarios (
-                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Nombre VARCHAR(50),
-                            Apellidos VARCHAR(100),
-                            Email VARCHAR(100),
-                            Telefono VARCHAR(20),
-                            CodigoPostal VARCHAR(10),
-                            Username VARCHAR(50) NOT NULL UNIQUE,
-                            Password VARCHAR(100) NOT NULL,
-                            Intentos INT DEFAULT 0,
-                            BloqueadoHasta DATETIME DEFAULT NULL,
-                            Suscripcion VARCHAR(20) DEFAULT 'Cielo'
+                    // Crea la tabla si no existe, asegurando que todos los campos necesarios estén ahí
+                    string query = @"
+                        CREATE TABLE IF NOT EXISTS usuarios (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            nombre VARCHAR(100),
+                            apellidos VARCHAR(100),
+                            username VARCHAR(50) UNIQUE,
+                            password VARCHAR(255),
+                            email VARCHAR(100),
+                            telefono VARCHAR(20),
+                            cp VARCHAR(10),
+                            intentos_fallidos INT DEFAULT 0,
+                            suscripcion VARCHAR(20) DEFAULT 'FREE',
+                            bloqueado_hasta DATETIME NULL
                         );";
 
-                    using (var command = new SQLiteCommand(sql, connection))
+                    using (var cmd = new MySqlCommand(query, connection))
                     {
-                        command.ExecuteNonQuery();
-                    }
-
-                    // 3. Insertar el admin si la tabla estaba vacía
-                    string checkAdmin = "SELECT COUNT(*) FROM Usuarios WHERE Username = 'admin'";
-                    using (var checkCmd = new SQLiteCommand(checkAdmin, connection))
-                    {
-                        if (Convert.ToInt64(checkCmd.ExecuteScalar()) == 0)
-                        {
-                            string insertAdmin = @"
-                                INSERT INTO Usuarios (Nombre, Apellidos, Username, Password, Suscripcion, Intentos) 
-                                VALUES ('Administrador', 'Sistema', 'admin', '1234', 'Infierno', 0);";
-                            using (var insertCmd = new SQLiteCommand(insertAdmin, connection))
-                            {
-                                insertCmd.ExecuteNonQuery();
-                            }
-                        }
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Error al conectar con SQLite: " + ex.Message);
+                MessageBox.Show("Error al inicializar la BD: " + ex.Message);
             }
         }
 
-        // 2. REGISTRAR USUARIO (Adaptado a SQLite)
-        public static bool RegisterUser(string nombre, string apellidos, string user, string pass, string email, string tlf, string cp)
+        // --- TEST CONEXIÓN ---
+        public static bool TestConnection()
         {
             try
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    string checkSql = "SELECT COUNT(*) FROM Usuarios WHERE Username = @u";
-                    using (var checkCmd = new SQLiteCommand(checkSql, connection))
-                    {
-                        checkCmd.Parameters.AddWithValue("@u", user);
-                        if (Convert.ToInt64(checkCmd.ExecuteScalar()) > 0) return false;
-                    }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al conectar con MySQL: " + ex.Message);
+                return false;
+            }
+        }
 
-                    string insertSql = "INSERT INTO Usuarios (Nombre, Apellidos, Username, Password, Email, Telefono, CodigoPostal, Intentos, BloqueadoHasta, Suscripcion) " +
-                                       "VALUES (@nom, @ape, @u, @p, @mail, @tlf, @cp, 0, NULL, 'Cielo')";
+        // --- REGISTRO DE USUARIO ---
+        public static bool RegisterUser(string nombre, string apellidos, string username, string password, string email, string telefono, string cp)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "INSERT INTO usuarios (nombre, apellidos, username, password, email, telefono, cp, intentos_fallidos, suscripcion) " +
+                                   "VALUES (@nom, @ape, @user, @pass, @mail, @tlf, @cp, 0, 'FREE')";
 
-                    using (var insertCmd = new SQLiteCommand(insertSql, connection))
+                    using (var cmd = new MySqlCommand(query, connection))
                     {
-                        insertCmd.Parameters.AddWithValue("@nom", nombre);
-                        insertCmd.Parameters.AddWithValue("@ape", apellidos);
-                        insertCmd.Parameters.AddWithValue("@u", user);
-                        insertCmd.Parameters.AddWithValue("@p", pass);
-                        insertCmd.Parameters.AddWithValue("@mail", email);
-                        insertCmd.Parameters.AddWithValue("@tlf", tlf);
-                        insertCmd.Parameters.AddWithValue("@cp", cp);
-                        insertCmd.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("@nom", nombre);
+                        cmd.Parameters.AddWithValue("@ape", apellidos);
+                        cmd.Parameters.AddWithValue("@user", username);
+                        cmd.Parameters.AddWithValue("@pass", password);
+                        cmd.Parameters.AddWithValue("@mail", email);
+                        cmd.Parameters.AddWithValue("@tlf", telefono);
+                        cmd.Parameters.AddWithValue("@cp", cp);
+
+                        cmd.ExecuteNonQuery();
                     }
                     return true;
                 }
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error en registro: " + ex.Message);
+                return false;
+            }
         }
 
-        // 3. VALIDAR LOGIN (Adaptado a SQLite)
-        public static string ValidateUser(string user, string pass)
+        // --- LOGIN (VALIDAR USUARIO) ---
+        public static bool ValidateUser(string username, string password)
         {
             try
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-
-                    string sql = "SELECT Id, Password, Intentos, BloqueadoHasta FROM Usuarios WHERE Username = @u";
-
-                    int intentos = 0;
-                    DateTime? bloqueadoHasta = null;
-                    string passwordReal = "";
-
-                    using (var cmd = new SQLiteCommand(sql, connection))
+                    string query = "SELECT password, intentos_fallidos, bloqueado_hasta FROM usuarios WHERE username = @user";
+                    using (var cmd = new MySqlCommand(query, connection))
                     {
-                        cmd.Parameters.AddWithValue("@u", user);
+                        cmd.Parameters.AddWithValue("@user", username);
                         using (var reader = cmd.ExecuteReader())
                         {
-                            if (!reader.Read()) return "NO_USER";
-                            passwordReal = reader["Password"].ToString();
-                            intentos = Convert.ToInt32(reader["Intentos"]);
-
-                            if (reader["BloqueadoHasta"] != DBNull.Value)
+                            if (reader.Read())
                             {
-                                // Parseamos el string de fecha que devuelve SQLite
-                                bloqueadoHasta = DateTime.Parse(reader["BloqueadoHasta"].ToString());
+                                string dbPass = reader["password"].ToString();
+                                int intentos = Convert.ToInt32(reader["intentos_fallidos"]);
+                                var bloqueadoHastaVal = reader["bloqueado_hasta"];
+
+                                // Verificar bloqueo
+                                if (bloqueadoHastaVal != DBNull.Value)
+                                {
+                                    DateTime bloqueadoHasta = Convert.ToDateTime(bloqueadoHastaVal);
+                                    if (DateTime.Now < bloqueadoHasta)
+                                    {
+                                        MessageBox.Show($"Cuenta bloqueada hasta las {bloqueadoHasta:HH:mm:ss}");
+                                        return false;
+                                    }
+                                }
+
+                                reader.Close();
+
+                                // Verificar contraseña
+                                if (dbPass == password)
+                                {
+                                    ResetIntentos(username);
+                                    return true;
+                                }
+                                else
+                                {
+                                    AumentarIntentos(username, intentos);
+                                    return false;
+                                }
+                            }
+                            else
+                            {
+                                return false; // Usuario no existe
                             }
                         }
-                    }
-
-                    if (bloqueadoHasta != null && bloqueadoHasta > DateTime.Now)
-                    {
-                        TimeSpan tiempoRestante = bloqueadoHasta.Value - DateTime.Now;
-                        return $"LOCKED|{Math.Ceiling(tiempoRestante.TotalMinutes)}";
-                    }
-
-                    if (pass == passwordReal)
-                    {
-                        string resetSql = "UPDATE Usuarios SET Intentos = 0, BloqueadoHasta = NULL WHERE Username = @u";
-                        using (var updateCmd = new SQLiteCommand(resetSql, connection))
-                        {
-                            updateCmd.Parameters.AddWithValue("@u", user);
-                            updateCmd.ExecuteNonQuery();
-                        }
-                        return "OK";
-                    }
-                    else
-                    {
-                        // Fallo
-                        intentos++;
-                        string bloqueoFecha = DateTime.Now.AddMinutes(5).ToString("yyyy-MM-dd HH:mm:ss");
-
-                        string updateSql = (intentos >= 3) ?
-                            "UPDATE Usuarios SET Intentos = @i, BloqueadoHasta = @bh WHERE Username = @u" :
-                            "UPDATE Usuarios SET Intentos = @i WHERE Username = @u";
-
-                        using (var lockCmd = new SQLiteCommand(updateSql, connection))
-                        {
-                            lockCmd.Parameters.AddWithValue("@i", intentos);
-                            lockCmd.Parameters.AddWithValue("@bh", bloqueoFecha);
-                            lockCmd.Parameters.AddWithValue("@u", user);
-                            lockCmd.ExecuteNonQuery();
-                        }
-                        return (intentos >= 3) ? "LOCKED|5" : $"WRONG_PASS|{3 - intentos}";
                     }
                 }
             }
             catch (Exception ex)
             {
-                return "ERROR: " + ex.Message;
+                MessageBox.Show("Error de Base de Datos: " + ex.Message);
+                return false;
             }
         }
 
-        // 4. Obtener ID del Usuario (Adaptado a SQLite)
-        public static string GetUserId(string username)
+        // --- MÉTODOS DE SOPORTE PARA LOGIN ---
+        private static void ResetIntentos(string username)
         {
-            try
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                conn.Open();
+                string query = "UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE username = @user";
+                using (var cmd = new MySqlCommand(query, conn))
                 {
-                    connection.Open();
-                    string sql = "SELECT Id FROM Usuarios WHERE Username = @u";
-                    using (var cmd = new SQLiteCommand(sql, connection))
-                    {
-                        cmd.Parameters.AddWithValue("@u", username);
-                        object result = cmd.ExecuteScalar();
-                        return result != null ? result.ToString() : "0000";
-                    }
+                    cmd.Parameters.AddWithValue("@user", username);
+                    cmd.ExecuteNonQuery();
                 }
             }
-            catch { return "ERR"; }
         }
 
-        // 5. Cambiar Contraseña (Adaptado a SQLite)
-        public static bool UpdatePassword(string username, string newPassword)
+        private static void AumentarIntentos(string username, int intentosActuales)
         {
-            try
+            int nuevosIntentos = intentosActuales + 1;
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                conn.Open();
+                if (nuevosIntentos >= 3)
                 {
-                    connection.Open();
-                    string sql = "UPDATE Usuarios SET Password = @p WHERE Username = @u";
-                    using (var cmd = new SQLiteCommand(sql, connection))
+                    string query = "UPDATE usuarios SET intentos_fallidos = @intentos, bloqueado_hasta = @bloqueo WHERE username = @user";
+                    using (var cmd = new MySqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@p", newPassword);
-                        cmd.Parameters.AddWithValue("@u", username);
-                        return cmd.ExecuteNonQuery() > 0;
+                        cmd.Parameters.AddWithValue("@intentos", nuevosIntentos);
+                        cmd.Parameters.AddWithValue("@bloqueo", DateTime.Now.AddMinutes(5));
+                        cmd.Parameters.AddWithValue("@user", username);
+                        cmd.ExecuteNonQuery();
                     }
+                    MessageBox.Show("¡Contraseña incorrecta 3 veces! Bloqueado por 5 minutos.");
+                }
+                else
+                {
+                    string query = "UPDATE usuarios SET intentos_fallidos = @intentos WHERE username = @user";
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@intentos", nuevosIntentos);
+                        cmd.Parameters.AddWithValue("@user", username);
+                        cmd.ExecuteNonQuery();
+                    }
+                    MessageBox.Show($"Contraseña incorrecta. Intento {nuevosIntentos} de 3.");
                 }
             }
-            catch { return false; }
         }
 
-        // 6. Actualizar Suscripción (Adaptado a SQLite)
-        public static bool UpdateSubscription(string username, string plan)
+        // --- NUEVO: OBTENER ID (Requerido para ConfigWindow) ---
+        // Soluciona error: 'DatabaseHelper' no contiene definición para 'GetUserId'
+        public static int GetUserId(string username)
         {
-            try
+            using (var connection = new MySqlConnection(connectionString))
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                connection.Open();
+                string query = "SELECT id FROM usuarios WHERE username = @user";
+                using (var cmd = new MySqlCommand(query, connection))
                 {
-                    connection.Open();
-                    string sql = "UPDATE Usuarios SET Suscripcion = @plan WHERE Username = @u";
-                    using (var cmd = new SQLiteCommand(sql, connection))
-                    {
-                        cmd.Parameters.AddWithValue("@plan", plan);
-                        cmd.Parameters.AddWithValue("@u", username);
-                        return cmd.ExecuteNonQuery() > 0;
-                    }
+                    cmd.Parameters.AddWithValue("@user", username);
+                    object result = cmd.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : -1;
                 }
             }
-            catch { return false; }
         }
 
-        // 7. Obtener Suscripción Actual (Adaptado a SQLite)
-        public static string GetSubscription(string username)
+        // --- NUEVO: OBTENER SUSCRIPCIÓN POR ID ---
+        // Soluciona error: 'DatabaseHelper' no contiene definición para 'GetSubscription'
+        public static string GetSubscription(int userId)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT suscripcion FROM usuarios WHERE id = @id";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@id", userId);
+                    object result = cmd.ExecuteScalar();
+                    return result != null ? result.ToString() : "FREE";
+                }
+            }
+        }
+
+        // (Mantenemos el método antiguo por si acaso lo usas en otro sitio por nombre)
+        public static string GetUserSubscription(string username)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT suscripcion FROM usuarios WHERE username = @user";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@user", username);
+                    object result = cmd.ExecuteScalar();
+                    return result != null ? result.ToString() : "FREE";
+                }
+            }
+        }
+
+        // --- NUEVO: ACTUALIZAR PASSWORD ---
+        // Soluciona error: 'DatabaseHelper' no contiene definición para 'UpdatePassword'
+        public static void UpdatePassword(int userId, string newPassword)
         {
             try
             {
-                using (var connection = new SQLiteConnection(ConnectionString))
+                using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    string sql = "SELECT Suscripcion FROM Usuarios WHERE Username = @u";
-                    using (var cmd = new SQLiteCommand(sql, connection))
+                    string query = "UPDATE usuarios SET password = @pass WHERE id = @id";
+                    using (var cmd = new MySqlCommand(query, connection))
                     {
-                        cmd.Parameters.AddWithValue("@u", username);
-                        object result = cmd.ExecuteScalar();
-
-                        if (result == null || result == DBNull.Value || string.IsNullOrEmpty(result.ToString()))
-                            return "Cielo";
-
-                        return result.ToString();
+                        cmd.Parameters.AddWithValue("@pass", newPassword);
+                        cmd.Parameters.AddWithValue("@id", userId);
+                        cmd.ExecuteNonQuery();
                     }
+                    MessageBox.Show("Contraseña actualizada correctamente.");
                 }
             }
-            catch { return "ERR"; }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cambiar contraseña: " + ex.Message);
+            }
+        }
+
+        // --- ACTUALIZAR SUSCRIPCIÓN ---
+        public static void UpdateSubscription(string username, string nuevaSuscripcion)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "UPDATE usuarios SET suscripcion = @sub WHERE username = @user";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@sub", nuevaSuscripcion);
+                    cmd.Parameters.AddWithValue("@user", username);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

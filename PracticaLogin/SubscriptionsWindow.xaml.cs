@@ -1,96 +1,71 @@
 ﻿using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls; // Necesario para TextBlock
 
 namespace PracticaLogin
 {
     public partial class SubscriptionsWindow : Window
     {
-        private string usuarioActual;
+        private string currentUsername;
+        private int currentUserId;
 
-        public SubscriptionsWindow(string usuario)
+        public SubscriptionsWindow(string username)
         {
             InitializeComponent();
-            this.usuarioActual = usuario;
-
-            ActualizarInterfaz();
+            currentUsername = username;
+            CargarSuscripcion();
         }
 
-        private void ActualizarInterfaz()
+        // --- MÉTODO PARA MOSTRAR LA SUSCRIPCIÓN ACTUAL ---
+        private void CargarSuscripcion()
         {
-            string plan = DatabaseHelper.GetSubscription(usuarioActual);
+            // 1. Obtener ID y Plan actual
+            currentUserId = DatabaseHelper.GetUserId(currentUsername);
+            string plan = DatabaseHelper.GetSubscription(currentUserId);
 
-            // Resetear todos los botones
-            ResetButton(BtnCielo, "SELECCIONAR", Brushes.Transparent, new SolidColorBrush(Color.FromRgb(79, 195, 247)));
-            ResetButton(BtnLimbo, "SELECCIONAR", new SolidColorBrush(Color.FromRgb(255, 152, 0)), Brushes.Black);
-            ResetButton(BtnInfierno, "CONSEGUIR PODER", new SolidColorBrush(Color.FromRgb(211, 47, 47)), Brushes.White);
-
-            // Marcar el botón del plan actual
-            switch (plan)
+            // Intentamos buscar el TextBlock por si acaso tiene un nombre diferente
+            // Si en tu XAML el texto donde sale el plan se llama "lblPlanActual", esto funcionará.
+            if (this.FindName("lblPlanActual") is TextBlock label)
             {
-                case "Cielo": MarcarComoActual(BtnCielo); break;
-                case "Limbo": MarcarComoActual(BtnLimbo); break;
-                case "Infierno": MarcarComoActual(BtnInfierno); break;
+                label.Text = "PLAN ACTUAL: " + plan.ToUpper();
+            }
+            // Si usaste un Label en vez de TextBlock:
+            else if (this.FindName("lblPlanActual") is Label labelControl)
+            {
+                labelControl.Content = "PLAN ACTUAL: " + plan.ToUpper();
             }
         }
 
-        private void ResetButton(System.Windows.Controls.Button btn, string text, Brush bg, Brush fg)
-        {
-            btn.Content = text;
-            btn.IsEnabled = true;
-            if (bg != Brushes.Transparent) { btn.Background = bg; btn.Foreground = fg; }
-            btn.Opacity = 1;
-        }
-
-        private void MarcarComoActual(System.Windows.Controls.Button btn)
-        {
-            btn.Content = "SELECCIONADA";
-            btn.IsEnabled = false;
-            btn.Opacity = 1;
-        }
-
-        private void BtnVolver_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        // --- COMPRAS ---
+        // --- BOTÓN PLAN CIELO (Error corregido) ---
         private void BtnCielo_Click(object sender, RoutedEventArgs e)
         {
-            var colorAzul = new SolidColorBrush(Color.FromRgb(79, 195, 247));
-            CustomMessageBox msg = new CustomMessageBox("Cambiar Plan", "¿Quieres volver al plan GRATUITO (Cielo)?", colorAzul);
-            if (msg.ShowDialog() == true)
-            {
-                DatabaseHelper.UpdateSubscription(usuarioActual, "Cielo");
-                ActualizarInterfaz();
-            }
+            DatabaseHelper.UpdateSubscription(currentUsername, "CIELO");
+            MessageBox.Show("¡Te has suscrito al plan CIELO!");
+            CargarSuscripcion(); // Actualiza el texto en pantalla
         }
 
+        // --- BOTÓN PLAN LIMBO (Error corregido) ---
         private void BtnLimbo_Click(object sender, RoutedEventArgs e)
         {
-            var colorNaranja = new SolidColorBrush(Color.FromRgb(255, 152, 0));
-            CustomMessageBox msg = new CustomMessageBox("Confirmar Suscripción", "¿Suscribirse al plan LIMBO por 4.99€/mes?", colorNaranja);
-
-            if (msg.ShowDialog() == true)
-            {
-                DatabaseHelper.UpdateSubscription(usuarioActual, "Limbo");
-                CustomMessageBox exito = new CustomMessageBox("¡Bienvenido!", "Disfruta del Limbo.", colorNaranja);
-                exito.btnConfirmar.Content = "ACEPTAR"; exito.ShowDialog();
-                ActualizarInterfaz();
-            }
+            DatabaseHelper.UpdateSubscription(currentUsername, "LIMBO");
+            MessageBox.Show("¡Te has suscrito al plan LIMBO!");
+            CargarSuscripcion();
         }
 
+        // --- BOTÓN PLAN INFIERNO (Error corregido) ---
         private void BtnInfierno_Click(object sender, RoutedEventArgs e)
         {
-            var colorRojo = new SolidColorBrush(Color.FromRgb(211, 47, 47));
-            CustomMessageBox msg = new CustomMessageBox("Poder Absoluto", "¿Te atreves con EL INFIERNO por 14.99€/mes?", colorRojo);
+            DatabaseHelper.UpdateSubscription(currentUsername, "INFIERNO");
+            MessageBox.Show("¡Te has suscrito al plan INFIERNO!");
+            CargarSuscripcion();
+        }
 
-            if (msg.ShowDialog() == true)
-            {
-                DatabaseHelper.UpdateSubscription(usuarioActual, "Infierno");
-                CustomMessageBox exito = new CustomMessageBox("¡Poder Desatado!", "Ahora eres PREMIUM.", colorRojo);
-                exito.btnConfirmar.Content = "ACEPTAR"; exito.ShowDialog();
-                ActualizarInterfaz();
-            }
+        // --- BOTÓN VOLVER ---
+        // Asegúrate de que en tu XAML el botón de volver tenga Click="BtnVolver_Click"
+        private void BtnVolver_Click(object sender, RoutedEventArgs e)
+        {
+            HomeWindow home = new HomeWindow(currentUsername);
+            home.Show();
+            this.Close();
         }
     }
 }
