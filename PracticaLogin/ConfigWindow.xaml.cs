@@ -5,92 +5,59 @@ namespace PracticaLogin
 {
     public partial class ConfigWindow : Window
     {
-        private string currentUsername;
-        private int currentUserId;
+        // CAMBIO 1: Guardamos el objeto completo, no solo el string
+        private Usuario _usuarioActual;
 
-        public ConfigWindow(string username)
+        // CAMBIO 2: El constructor recibe el objeto Usuario
+        public ConfigWindow(Usuario usuario)
         {
             InitializeComponent();
-            currentUsername = username;
+            _usuarioActual = usuario;
 
-            // Cargar datos del usuario al iniciar
             CargarDatosUsuario();
         }
 
-        // --- LOGICA DE DATOS ---
         private void CargarDatosUsuario()
         {
-            // 1. Obtener ID
-            currentUserId = DatabaseHelper.GetUserId(currentUsername);
-
-            // 2. Mostrar datos en la interfaz (lblUsuarioCuenta y lblIdCuenta existen en tu XAML)
-            lblUsuarioCuenta.Text = currentUsername.ToUpper();
-            lblIdCuenta.Text = $"ID: #{currentUserId:D4}"; // Formato 0001
+            // Usamos los datos del objeto que ya tenemos en memoria
+            lblUsuarioCuenta.Text = _usuarioActual.Username.ToUpper();
+            lblIdCuenta.Text = $"ID: #{_usuarioActual.Id:D4}";
         }
 
-        // --- ARRASTRAR VENTANA ---
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        // --- BOTÓN VOLVER (Aquí estaba tu error) ---
+        private void BtnVolver_Click(object sender, RoutedEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
+            // Ahora pasamos el OBJETO _usuarioActual, no un string
+            HomeWindow home = new HomeWindow(_usuarioActual);
+            home.Show();
+            this.Close();
         }
 
-        // --- MENÚ LATERAL (Ocultar/Mostrar Paneles) ---
-        private void OcultarTodosPaneles()
-        {
-            pnlGeneral.Visibility = Visibility.Collapsed;
-            pnlGraficos.Visibility = Visibility.Collapsed;
-            pnlSonido.Visibility = Visibility.Collapsed;
-            pnlCuenta.Visibility = Visibility.Collapsed;
-        }
+        // --- RESTO DE TU CÓDIGO (Sin cambios importantes, solo referencias) ---
 
-        private void BtnGeneral_Click(object sender, RoutedEventArgs e)
-        {
-            OcultarTodosPaneles();
-            pnlGeneral.Visibility = Visibility.Visible;
-        }
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.LeftButton == MouseButtonState.Pressed) this.DragMove(); }
 
-        private void BtnGraficos_Click(object sender, RoutedEventArgs e)
-        {
-            OcultarTodosPaneles();
-            pnlGraficos.Visibility = Visibility.Visible;
-        }
+        // Paneles
+        private void OcultarTodosPaneles() { pnlGeneral.Visibility = Visibility.Collapsed; pnlGraficos.Visibility = Visibility.Collapsed; pnlSonido.Visibility = Visibility.Collapsed; pnlCuenta.Visibility = Visibility.Collapsed; }
+        private void BtnGeneral_Click(object sender, RoutedEventArgs e) { OcultarTodosPaneles(); pnlGeneral.Visibility = Visibility.Visible; }
+        private void BtnGraficos_Click(object sender, RoutedEventArgs e) { OcultarTodosPaneles(); pnlGraficos.Visibility = Visibility.Visible; }
+        private void BtnSonido_Click(object sender, RoutedEventArgs e) { OcultarTodosPaneles(); pnlSonido.Visibility = Visibility.Visible; }
+        private void BtnCuenta_Click(object sender, RoutedEventArgs e) { OcultarTodosPaneles(); pnlCuenta.Visibility = Visibility.Visible; }
 
-        private void BtnSonido_Click(object sender, RoutedEventArgs e)
-        {
-            OcultarTodosPaneles();
-            pnlSonido.Visibility = Visibility.Visible;
-        }
-
-        private void BtnCuenta_Click(object sender, RoutedEventArgs e)
-        {
-            OcultarTodosPaneles();
-            pnlCuenta.Visibility = Visibility.Visible;
-        }
-
-        // --- LOGICA PESTAÑA CUENTA ---
-
-        // Botón "CAMBIAR CONTRASEÑA" (Muestra el panel pequeño)
+        // Lógica Cuenta
         private void BtnMostrarCambioPass_Click(object sender, RoutedEventArgs e)
         {
-            if (pnlCambioPass.Visibility == Visibility.Collapsed)
-                pnlCambioPass.Visibility = Visibility.Visible;
-            else
-                pnlCambioPass.Visibility = Visibility.Collapsed;
+            pnlCambioPass.Visibility = (pnlCambioPass.Visibility == Visibility.Collapsed) ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // Botón "CONFIRMAR CAMBIO"
         private void BtnConfirmarPass_Click(object sender, RoutedEventArgs e)
         {
             string nuevaPass = txtNuevaPass.Password;
-
             if (!string.IsNullOrEmpty(nuevaPass))
             {
-                DatabaseHelper.UpdatePassword(currentUserId, nuevaPass);
+                DatabaseHelper.UpdatePassword(_usuarioActual.Id, nuevaPass); // Usamos ID del objeto
                 txtNuevaPass.Password = "";
-                pnlCambioPass.Visibility = Visibility.Collapsed; // Ocultar panel al terminar
+                pnlCambioPass.Visibility = Visibility.Collapsed;
             }
             else
             {
@@ -98,26 +65,14 @@ namespace PracticaLogin
             }
         }
 
-        // Botón "GESTIONAR SUSCRIPCIÓN" -> Abre la otra ventana
         private void BtnGestionarSuscripcion_Click(object sender, RoutedEventArgs e)
         {
-            SubscriptionsWindow subWindow = new SubscriptionsWindow(currentUsername);
+            // Pasamos el objeto usuario a la siguiente ventana
+            SubscriptionsWindow subWindow = new SubscriptionsWindow(_usuarioActual);
             subWindow.Show();
             this.Close();
         }
 
-        // Botón "GUARDAR CAMBIOS" (Simulado)
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Configuración guardada correctamente.");
-        }
-
-        // Botón "VOLVER" (Cerrar sesión y volver al Login)
-        private void BtnVolver_Click(object sender, RoutedEventArgs e)
-        {
-            HomeWindow home = new HomeWindow(currentUsername);
-            home.Show();
-            this.Close();
-        }
+        private void BtnGuardar_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Configuración guardada.");
     }
 }

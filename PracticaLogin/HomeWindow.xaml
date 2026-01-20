@@ -194,14 +194,17 @@
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,30,0">
 
+                        <Button x:Name="btnAdminPanel" Content="⚙ ADMIN" Click="BtnAdminPanel_Click" 
+                                Style="{StaticResource TopMenuButton}"
+                                Visibility="Collapsed"
+                                Foreground="#FF4444" 
+                                Margin="0,0,15,0"/>
+
                         <Border x:Name="UserProfileBorder" CornerRadius="20" BorderBrush="#00E5FF" BorderThickness="1" 
                                 Padding="10,5" Background="#44000000" Cursor="Hand" MouseLeftButtonUp="UserProfile_Click">
                             <StackPanel Orientation="Horizontal">
-
                                 <Border x:Name="MainStatusIndicator" Width="12" Height="12" CornerRadius="6" Background="#23A559" Margin="0,0,10,0" BorderBrush="Black" BorderThickness="1"/>
-
                                 <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-
                                 <TextBlock Text="▼" Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>

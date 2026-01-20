@@ -7,60 +7,65 @@ namespace PracticaLogin
 {
     public partial class HomeWindow : Window
     {
-        private string usuarioLogueado;
+        // Guardamos el objeto usuario completo
+        private Usuario _usuarioActual;
 
-        public HomeWindow(string nombreUsuario)
+        // CONSTRUCTOR MODIFICADO: Recibe 'Usuario' en vez de 'string'
+        public HomeWindow(Usuario usuario)
         {
             InitializeComponent();
-            this.usuarioLogueado = nombreUsuario;
+            _usuarioActual = usuario;
 
-            // Seguridad: Verificamos que el Label exista antes de asignarle texto
+            // 1. Mostrar nombre (Usamos tu variable lblNombreUsuario)
             if (lblNombreUsuario != null)
             {
-                lblNombreUsuario.Text = nombreUsuario.ToUpper();
+                lblNombreUsuario.Text = _usuarioActual.Username.ToUpper();
+            }
+
+            // 2. LÓGICA DE ADMIN (Mostrar botón si es necesario)
+            // IMPORTANTE: Asegúrate de añadir el botón en el XAML como explico abajo
+            if (this.FindName("btnAdminPanel") is Button btnAdmin)
+            {
+                if (_usuarioActual.Rol == "ADMIN")
+                    btnAdmin.Visibility = Visibility.Visible;
+                else
+                    btnAdmin.Visibility = Visibility.Collapsed;
             }
         }
 
+        // --- NUEVO: EVENTO DEL BOTÓN ADMIN ---
+        private void BtnAdminPanel_Click(object sender, RoutedEventArgs e)
+        {
+            AdminWindow admin = new AdminWindow(_usuarioActual.Id);
+            admin.ShowDialog();
+        }
+
         // ==========================================
-        // 1. CONTROLES DE VENTANA (Drag, Min, Max, Close)
+        // TUS MÉTODOS ORIGINALES (RESTORED)
         // ==========================================
 
         private void TopBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
+            if (e.ChangedButton == MouseButton.Left) this.DragMove();
         }
 
-        private void BtnMinimizar_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
+        private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
+        private void BtnCerrarApp_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
         private void BtnMaximizar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.WindowState == WindowState.Maximized)
-                this.WindowState = WindowState.Normal;
-            else
-                this.WindowState = WindowState.Maximized;
+            if (this.WindowState == WindowState.Maximized) this.WindowState = WindowState.Normal;
+            else this.WindowState = WindowState.Maximized;
         }
-
-        private void BtnCerrarApp_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        // ==========================================
-        // 2. MENÚ DE USUARIO Y ESTADO (Online, Ausente...)
-        // ==========================================
 
         private void UserProfile_Click(object sender, MouseButtonEventArgs e)
         {
-            // Abre o cierra el popup del menú
-            if (UserMenuPopup != null)
-            {
-                UserMenuPopup.IsOpen = true;
-            }
+            if (UserMenuPopup != null) UserMenuPopup.IsOpen = true;
         }
+
+        // Estados
+        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) { CambiarEstado("#23A559"); }
+        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) { CambiarEstado("#F0B232"); }
+        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) { CambiarEstado("#747F8D"); }
 
         private void CambiarEstado(string hexColor)
         {
@@ -68,73 +73,44 @@ namespace PracticaLogin
             {
                 var converter = new BrushConverter();
                 MainStatusIndicator.Background = (Brush)converter.ConvertFromString(hexColor);
-                UserMenuPopup.IsOpen = false; // Cierra el menú al elegir
+                UserMenuPopup.IsOpen = false;
             }
         }
 
-        // Botones de estado dentro del Popup
-        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) { CambiarEstado("#23A559"); }
-        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) { CambiarEstado("#F0B232"); }
-        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) { CambiarEstado("#747F8D"); }
-
-        // Botón "Mi Perfil" redirige a Configuración
-        private void BtnMiPerfil_Click(object sender, RoutedEventArgs e)
-        {
-            BtnConfiguracion_Click(sender, e);
-        }
-
-        // ==========================================
-        // 3. EFECTO PARALLAX (Fondo en movimiento)
-        // ==========================================
-
-        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-            // Verificamos que el Transform exista en el XAML para evitar crasheos
-            if (e.VerticalChange != 0 && BackgroundTranslateTransform != null)
-            {
-                double parallaxFactor = 0.1; // Ajusta la velocidad del fondo
-                double newOffsetY = e.VerticalOffset * parallaxFactor;
-
-                BackgroundTranslateTransform.Y = -newOffsetY;
-            }
-        }
-
-        // ==========================================
-        // 4. NAVEGACIÓN PRINCIPAL
-        // ==========================================
-
+        // Navegación
         private void BtnConfiguracion_Click(object sender, RoutedEventArgs e)
         {
             if (UserMenuPopup != null) UserMenuPopup.IsOpen = false;
+            this.Opacity = 0.5;
 
-            this.Opacity = 0.5; // Oscurece el Home
+            // CORRECCIÓN: Pasamos '_usuarioActual' (el objeto), NO '_usuarioActual.Username' (el string)
+            ConfigWindow config = new ConfigWindow(_usuarioActual);
 
-            // Usamos ShowDialog para que el usuario NO pueda tocar el Home hasta cerrar Config
-            ConfigWindow config = new ConfigWindow(usuarioLogueado);
             config.ShowDialog();
-
-            this.Opacity = 1; // Restaura el brillo al volver
+            this.Opacity = 1;
         }
 
         private void BtnSuscripciones_Click(object sender, RoutedEventArgs e)
         {
             this.Opacity = 0.5;
 
-            SubscriptionsWindow subWindow = new SubscriptionsWindow(usuarioLogueado);
-            subWindow.ShowDialog();
+            // CORRECCIÓN: Pasamos '_usuarioActual' (el objeto)
+            SubscriptionsWindow subWindow = new SubscriptionsWindow(_usuarioActual);
 
+            subWindow.ShowDialog();
             this.Opacity = 1;
         }
 
         private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
-            // Aquí SÍ cerramos el Home porque volvemos al Login
             MainWindow login = new MainWindow();
             login.Show();
             this.Close();
         }
 
-        // Métodos auxiliares para secciones futuras
+        private void BtnMiPerfil_Click(object sender, RoutedEventArgs e) => BtnConfiguracion_Click(sender, e);
+
+        // Menú Principal
         private void BtnTienda_Click(object sender, RoutedEventArgs e) { AbrirSeccion("TIENDA AKAY"); }
         private void BtnComunidad_Click(object sender, RoutedEventArgs e) { AbrirSeccion("COMUNIDAD GLOBAL"); }
         private void BtnSoporte_Click(object sender, RoutedEventArgs e) { AbrirSeccion("SOPORTE TÉCNICO"); }
@@ -149,16 +125,13 @@ namespace PracticaLogin
             this.Opacity = 1;
         }
 
-        // ==========================================
-        // 5. DETALLES DE JUEGOS (Cards)
-        // ==========================================
-
-        private void Juego1_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("PHANTOM", "/Assets/juego1.jpg", "Acción", "GRATIS", "1P", "En un futuro distópico, conviértete en un fantasma digital capaz de hackear la realidad."); }
-        private void Juego2_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("DRAGON", "/Assets/juego2.jpg", "RPG", "49€", "MMO", "Únete a miles de jugadores en un mundo abierto masivo. Caza dragones, forja alianzas y conquista castillos."); }
-        private void Juego3_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("VOID", "/Assets/juego3.jpg", "Terror", "19€", "Coop", "Estás atrapado en una estación submarina abandonada. El oxígeno se agota y algo acecha en la oscuridad."); }
-        private void Juego4_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("SILENT ECHO", "/Assets/juego4.jpg", "Puzzle", "14€", "1P", "Un eco del pasado te persigue. Resuelve intrincados rompecabezas en este thriller."); }
-        private void Juego5_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("STAR JUMPER", "/Assets/juego7.jpg", "Plataformas", "29€", "1P", "¡El nuevo éxito del año! Salta entre planetas en este colorido juego de plataformas."); }
-        private void Juego6_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("IRON EMPEROR", "/Assets/juego6.jpg", "Estrategia", "39€", "Online", "Comanda ejércitos masivos y domina el continente en tiempo real."); }
+        // Juegos
+        private void Juego1_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("PHANTOM", "/Assets/juego1.jpg", "Acción", "GRATIS", "1P", "Hackea la realidad."); }
+        private void Juego2_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("DRAGON", "/Assets/juego2.jpg", "RPG", "49€", "MMO", "Caza dragones."); }
+        private void Juego3_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("VOID", "/Assets/juego3.jpg", "Terror", "19€", "Coop", "Terror espacial."); }
+        private void Juego4_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("SILENT ECHO", "/Assets/juego4.jpg", "Puzzle", "14€", "1P", "Misterio."); }
+        private void Juego5_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("STAR JUMPER", "/Assets/juego7.jpg", "Plataformas", "29€", "1P", "Aventura."); }
+        private void Juego6_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("IRON EMPEROR", "/Assets/juego6.jpg", "Estrategia", "39€", "Online", "Guerra total."); }
 
         private void AbrirDetalleJuego(string t, string img, string gen, string prec, string jug, string desc)
         {
@@ -166,6 +139,16 @@ namespace PracticaLogin
             GameDetailWindow detalle = new GameDetailWindow(t, img, gen, prec, jug, desc);
             detalle.ShowDialog();
             this.Opacity = 1;
+        }
+
+        // Scroll
+        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            // Solo intentamos mover el fondo si existe en el XAML (para evitar errores si usas tu diseño antiguo)
+            if (e.VerticalChange != 0 && this.FindName("BackgroundTranslateTransform") is TranslateTransform trans)
+            {
+                trans.Y = -(e.VerticalOffset * 0.1);
+            }
         }
     }
 }

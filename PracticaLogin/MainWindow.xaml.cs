@@ -1,7 +1,5 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace PracticaLogin
 {
@@ -10,29 +8,20 @@ namespace PracticaLogin
         public MainWindow()
         {
             InitializeComponent();
-            // Inicializar la base de datos al arrancar para crear tablas si no existen
-            DatabaseHelper.InitializeDatabase();
+            DatabaseHelper.InitializeDatabase(); // Inicializamos la BD y tablas
         }
 
-        // --- BOTONES DE VENTANA (Cerrar / Minimizar) ---
-        private void BtnCerrar_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
+        // --- BOTONES DE VENTANA ---
+        private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
+        private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
 
-        private void BtnMinimizar_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
-        // Permite arrastrar la ventana aunque no tenga bordes
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonDown(e);
             this.DragMove();
         }
 
-        // --- NAVEGACIÓN ENTRE PANELES (Login <-> Registro) ---
+        // --- NAVEGACIÓN (Login <-> Registro) ---
         private void IrARegistro_Click(object sender, RoutedEventArgs e)
         {
             pnlLogin.Visibility = Visibility.Collapsed;
@@ -49,7 +38,7 @@ namespace PracticaLogin
             lblMensajeRegistro.Text = "";
         }
 
-        // --- LÓGICA DE LOGIN ---
+        // --- LÓGICA DE LOGIN (AQUÍ ESTÁ EL CAMBIO IMPORTANTE) ---
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuarioLogin.Text;
@@ -61,26 +50,26 @@ namespace PracticaLogin
                 return;
             }
 
-            bool loginExitoso = DatabaseHelper.ValidateUser(user, pass);
+            // Llamamos al método que devuelve el OBJETO USUARIO (no bool)
+            Usuario usuarioLogueado = DatabaseHelper.ValidateUser(user, pass);
 
-            if (loginExitoso)
+            if (usuarioLogueado != null)
             {
-                HomeWindow home = new HomeWindow(user);
+                // Pasamos el objeto usuario entero al Home
+                HomeWindow home = new HomeWindow(usuarioLogueado);
                 home.Show();
                 this.Close();
             }
             else
             {
-                // El mensaje de error específico (bloqueo, intentos) ya lo muestra el DatabaseHelper en un MessageBox,
-                // pero aquí ponemos un texto rojo genérico por si acaso.
+                // El error específico ya saltó en MessageBox desde DatabaseHelper
                 lblMensajeLogin.Text = "Credenciales incorrectas.";
             }
         }
 
-        // --- LÓGICA DE REGISTRO ---
+        // --- LÓGICA DE REGISTRO (Tu código original) ---
         private void BtnCrearCuenta_Click(object sender, RoutedEventArgs e)
         {
-            // Recoger datos
             string nom = txtRegNombre.Text;
             string ape = txtRegApellidos.Text;
             string user = txtRegUser.Text;
@@ -89,10 +78,9 @@ namespace PracticaLogin
             string tlf = txtRegTlf.Text;
             string cp = txtRegCP.Text;
 
-            // Validación simple
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass) || string.IsNullOrEmpty(mail))
             {
-                lblMensajeRegistro.Text = "Usuario, Contraseña y Email son obligatorios.";
+                lblMensajeRegistro.Text = "Campos obligatorios vacíos.";
                 return;
             }
 
@@ -105,7 +93,7 @@ namespace PracticaLogin
             }
             else
             {
-                lblMensajeRegistro.Text = "Error al crear la cuenta. El usuario podría existir.";
+                lblMensajeRegistro.Text = "Error: El usuario ya existe.";
             }
         }
     }
