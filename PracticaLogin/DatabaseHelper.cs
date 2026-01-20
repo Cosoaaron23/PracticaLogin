@@ -69,10 +69,13 @@ namespace PracticaLogin
         }
 
         // =============================================================
-        // 2. LOGIN Y REGISTRO
+        // 2. LOGIN Y REGISTRO (MODIFICADO PARA MENSAJES PERSONALIZADOS)
         // =============================================================
-        public static Usuario ValidateUser(string username, string password)
+
+        // Ahora devuelve el error en 'mensajeError' en lugar de mostrar MessageBox
+        public static Usuario ValidateUser(string username, string password, out string mensajeError)
         {
+            mensajeError = "Credenciales incorrectas.";
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
@@ -87,45 +90,56 @@ namespace PracticaLogin
                         {
                             if (reader.Read())
                             {
+                                // 1. CHEQUEO BLOQUEO TEMPORAL
                                 var bloqueadoHasta = reader["bloqueado_hasta"];
                                 if (bloqueadoHasta != DBNull.Value && DateTime.Now < Convert.ToDateTime(bloqueadoHasta))
                                 {
-                                    MessageBox.Show("Cuenta bloqueada temporalmente.");
+                                    mensajeError = "Cuenta bloqueada temporalmente. Espera unos minutos.";
                                     return null;
                                 }
 
+                                // 2. CHEQUEO BANEO PERMANENTE (ADMIN)
                                 bool esActivo = Convert.ToBoolean(reader["activo"]);
                                 if (!esActivo)
                                 {
-                                    MessageBox.Show("ESTA CUENTA HA SIDO BANEADA.");
+                                    // Este mensaje activará la ventana roja en el Login
+                                    mensajeError = "BLOQUEADO POR ADMINISTRADOR";
                                     return null;
                                 }
 
+                                // 3. CHEQUEO CONTRASEÑA
                                 string dbPass = reader["password"].ToString();
                                 if (dbPass == password)
                                 {
                                     ResetIntentos(username);
+                                    mensajeError = "OK"; // Éxito
                                     return new Usuario
                                     {
                                         Id = Convert.ToInt32(reader["id"]),
                                         Username = username,
                                         Email = reader["email"].ToString(),
                                         Rol = reader["rol"].ToString(),
-                                        Activo = true
+                                        Activo = true,
+                                        Password = dbPass
                                     };
                                 }
                                 else
                                 {
-                                    reader.Close();
                                     AumentarIntentos(username);
+                                    mensajeError = "Contraseña incorrecta.";
                                     return null;
                                 }
+                            }
+                            else
+                            {
+                                mensajeError = "El usuario no existe.";
+                                return null;
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error Login: " + ex.Message); }
+            catch (Exception ex) { mensajeError = "Error de conexión: " + ex.Message; }
             return null;
         }
 
@@ -189,7 +203,6 @@ namespace PracticaLogin
             return lista;
         }
 
-        // --- BANEO / DESBANEO (CON LOG) ---
         public static bool AlternarBloqueo(int idUsuario, bool estadoActual, int idAdmin)
         {
             using (var conn = new MySqlConnection(connectionString))
@@ -221,7 +234,6 @@ namespace PracticaLogin
             }
         }
 
-        // --- ACTUALIZAR ROL/EMAIL (CON LOG) ---
         public static void ActualizarUsuario(int id, string nuevoEmail, string nuevoRol, int idAdmin)
         {
             using (var conn = new MySqlConnection(connectionString))
@@ -249,7 +261,6 @@ namespace PracticaLogin
             }
         }
 
-        // --- CAMBIAR PASS ADMIN (CON LOG) ---
         public static void AdminCambiarPass(int idUsuario, string nuevaPass, int idAdmin)
         {
             using (var conn = new MySqlConnection(connectionString))
@@ -276,7 +287,6 @@ namespace PracticaLogin
             }
         }
 
-        // --- NUEVO: GENERAR TEXTO PARA EL REPORTE (EVIDENCIA) ---
         public static string ObtenerReporteLogs()
         {
             using (var conn = new MySqlConnection(connectionString))

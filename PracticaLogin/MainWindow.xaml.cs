@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media; // Necesario para Brushes
 
 namespace PracticaLogin
 {
@@ -8,7 +9,7 @@ namespace PracticaLogin
         public MainWindow()
         {
             InitializeComponent();
-            DatabaseHelper.InitializeDatabase(); // Inicializamos la BD y tablas
+            DatabaseHelper.InitializeDatabase(); // Inicializamos la BD
         }
 
         // --- BOTONES DE VENTANA ---
@@ -21,7 +22,7 @@ namespace PracticaLogin
             this.DragMove();
         }
 
-        // --- NAVEGACIÓN (Login <-> Registro) ---
+        // --- NAVEGACIÓN ---
         private void IrARegistro_Click(object sender, RoutedEventArgs e)
         {
             pnlLogin.Visibility = Visibility.Collapsed;
@@ -38,7 +39,7 @@ namespace PracticaLogin
             lblMensajeRegistro.Text = "";
         }
 
-        // --- LÓGICA DE LOGIN (AQUÍ ESTÁ EL CAMBIO IMPORTANTE) ---
+        // --- LÓGICA DE LOGIN (MODIFICADA) ---
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuarioLogin.Text;
@@ -50,24 +51,44 @@ namespace PracticaLogin
                 return;
             }
 
-            // Llamamos al método que devuelve el OBJETO USUARIO (no bool)
-            Usuario usuarioLogueado = DatabaseHelper.ValidateUser(user, pass);
+            // Variable para recibir el mensaje detallado del Helper
+            string respuestaError;
+
+            // Llamamos al método que ahora nos da el usuario Y el mensaje de error si falla
+            Usuario usuarioLogueado = DatabaseHelper.ValidateUser(user, pass, out respuestaError);
 
             if (usuarioLogueado != null)
             {
-                // Pasamos el objeto usuario entero al Home
+                // LOGIN ÉXITO
                 HomeWindow home = new HomeWindow(usuarioLogueado);
                 home.Show();
                 this.Close();
             }
             else
             {
-                // El error específico ya saltó en MessageBox desde DatabaseHelper
-                lblMensajeLogin.Text = "Credenciales incorrectas.";
+                // LOGIN FALLIDO
+                // Mostramos el error en el texto rojo (en mayúsculas para que resalte)
+                lblMensajeLogin.Text = respuestaError.ToUpper();
+
+                // Si el error es BANEO, sacamos la ventana personalizada ROJA
+                if (respuestaError.Contains("BLOQUEADO") || respuestaError.Contains("BANEADA"))
+                {
+                    var alerta = new CustomMessageBox(
+                        "ACCESO DENEGADO",
+                        "Tu cuenta ha sido suspendida permanentemente por decisión de un administrador.",
+                        Brushes.Red
+                    );
+                    alerta.ShowDialog();
+                }
+                else
+                {
+                    // Si solo es contraseña incorrecta, limpiamos el campo
+                    txtPasswordLogin.Password = "";
+                }
             }
         }
 
-        // --- LÓGICA DE REGISTRO (Tu código original) ---
+        // --- LÓGICA DE REGISTRO ---
         private void BtnCrearCuenta_Click(object sender, RoutedEventArgs e)
         {
             string nom = txtRegNombre.Text;
@@ -88,7 +109,9 @@ namespace PracticaLogin
 
             if (registroExitoso)
             {
-                MessageBox.Show("¡Cuenta creada con éxito! Ahora inicia sesión.");
+                // Usamos la ventana personalizada para el éxito también
+                var exito = new CustomMessageBox("BIENVENIDO", "¡Cuenta creada con éxito! Ahora inicia sesión.", Brushes.Cyan);
+                exito.ShowDialog();
                 IrALogin_Click(sender, e);
             }
             else
