@@ -1,0 +1,191 @@
+﻿<Window x:Class="PracticaLogin.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Akay Launcher" Height="550" Width="900"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="NoResize"
+        Background="Transparent" AllowsTransparency="True">
+
+    <Window.Resources>
+        <Style x:Key="RoundedTextBox" TargetType="TextBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#333"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="1" CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundedPasswordBox" TargetType="PasswordBox">
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#333"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="1" CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#121212" CornerRadius="20" BorderBrush="#333" BorderThickness="1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" CornerRadius="20,0,0,20">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#800000" Offset="0.0"/>
+                        <GradientStop Color="#200000" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="AKAY" FontFamily="Segoe UI Black" FontSize="60" Foreground="#FF4444" HorizontalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#FF4444" BlurRadius="20" ShadowDepth="0"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Text="JUEGA AL ROJO VIVO" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Column="1" Margin="40">
+                <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Content="-" Click="BtnMinimizar_Click" Width="30" Height="30" Background="Transparent" Foreground="#888" BorderThickness="0" FontSize="18" Cursor="Hand"/>
+                    <Button Content="X" Click="BtnCerrar_Click" Width="30" Height="30" Background="Transparent" Foreground="#888" BorderThickness="0" FontSize="14" Cursor="Hand"/>
+                </StackPanel>
+
+                <StackPanel x:Name="pnlLogin" VerticalAlignment="Center" Margin="20,0">
+                    <TextBlock Text="INICIAR SESIÓN" FontSize="28" FontWeight="Bold" Foreground="#00E5FF" Margin="0,0,0,30">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#00E5FF" BlurRadius="10" ShadowDepth="0" Opacity="0.5"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+
+                    <TextBlock Text="USUARIO" Foreground="#888" FontSize="12" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <TextBox x:Name="txtUsuarioLogin" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="CONTRASEÑA" Foreground="#888" FontSize="12" Margin="0,0,0,5" FontWeight="Bold"/>
+                    <PasswordBox x:Name="txtPasswordLogin" Style="{StaticResource RoundedPasswordBox}" Margin="0,0,0,30"/>
+
+                    <Button Content="ENTRAR" 
+                            IsDefault="True"
+                            Click="BtnLogin_Click" 
+                            Height="45" 
+                            Background="#00E5FF" 
+                            Foreground="#121212" 
+                            FontWeight="ExtraBold" 
+                            FontSize="14" 
+                            BorderThickness="0" 
+                            Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <TextBlock HorizontalAlignment="Center" Margin="0,20,0,0" Cursor="Hand">
+                        <Run Text="¿No tienes cuenta?" Foreground="#888"/>
+                        <Hyperlink Click="IrARegistro_Click" TextDecorations="None">
+                            <Run Text=" REGÍSTRATE AQUÍ" Foreground="#00E5FF" FontWeight="Bold"/>
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock x:Name="lblMensajeLogin" Foreground="#FF4444" HorizontalAlignment="Center" Margin="0,15,0,0" FontWeight="Bold"/>
+
+                    <Button x:Name="btnApelar" Content="SOLICITAR DESBANEO" Click="BtnApelar_Click" 
+                            Visibility="Collapsed" 
+                            Width="180" Height="30" Background="Transparent" Foreground="#FF4444" BorderBrush="#FF4444" BorderThickness="1" Margin="0,10,0,0" Cursor="Hand" FontSize="11">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="15"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel x:Name="pnlRegistro" VerticalAlignment="Center" Margin="10,0" Visibility="Collapsed">
+                    <TextBlock Text="CREAR CUENTA" FontSize="28" FontWeight="Bold" Foreground="#00E5FF" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,5,0">
+                            <TextBlock Text="Nombre" Foreground="#888"/>
+                            <TextBox x:Name="txtRegNombre" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,10"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                            <TextBlock Text="Apellidos" Foreground="#888"/>
+                            <TextBox x:Name="txtRegApellidos" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,10"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Usuario (Login)" Foreground="#888"/>
+                    <TextBox x:Name="txtRegUser" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Email" Foreground="#888"/>
+                    <TextBox x:Name="txtRegEmail" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Contraseña" Foreground="#888"/>
+                    <PasswordBox x:Name="txtRegPass" Style="{StaticResource RoundedPasswordBox}" Margin="0,0,0,10"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,5,0">
+                            <TextBlock Text="Teléfono" Foreground="#888"/>
+                            <TextBox x:Name="txtRegTlf" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,20"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                            <TextBlock Text="CP" Foreground="#888"/>
+                            <TextBox x:Name="txtRegCP" Style="{StaticResource RoundedTextBox}" Margin="0,0,0,20"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Button Content="REGISTRARME" Click="BtnCrearCuenta_Click" Height="40" Background="#00E5FF" Foreground="#121212" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <TextBlock HorizontalAlignment="Center" Margin="0,15,0,0" Cursor="Hand">
+                        <Run Text="¿Ya tienes cuenta?" Foreground="#888"/>
+                        <Hyperlink Click="IrALogin_Click" TextDecorations="None">
+                            <Run Text=" INICIA SESIÓN" Foreground="#00E5FF" FontWeight="Bold"/>
+                        </Hyperlink>
+                    </TextBlock>
+
+                    <TextBlock x:Name="lblMensajeRegistro" Foreground="#FF4444" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

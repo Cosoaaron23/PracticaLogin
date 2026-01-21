@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media; // Necesario para Brushes
+using System.Windows.Media;
 
 namespace PracticaLogin
 {
@@ -9,10 +9,10 @@ namespace PracticaLogin
         public MainWindow()
         {
             InitializeComponent();
-            DatabaseHelper.InitializeDatabase(); // Inicializamos la BD
+            DatabaseHelper.InitializeDatabase(); // Siempre inicializamos la BD al arrancar
         }
 
-        // --- BOTONES DE VENTANA ---
+        // --- VENTANA SIN BORDES (Drag & Control) ---
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
         private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
 
@@ -22,13 +22,15 @@ namespace PracticaLogin
             this.DragMove();
         }
 
-        // --- NAVEGACIÓN ---
+        // --- NAVEGACIÓN ENTRE PANELES ---
         private void IrARegistro_Click(object sender, RoutedEventArgs e)
         {
             pnlLogin.Visibility = Visibility.Collapsed;
             pnlRegistro.Visibility = Visibility.Visible;
+            // Limpiamos mensajes al cambiar
             lblMensajeLogin.Text = "";
             lblMensajeRegistro.Text = "";
+            btnApelar.Visibility = Visibility.Collapsed;
         }
 
         private void IrALogin_Click(object sender, RoutedEventArgs e)
@@ -39,11 +41,15 @@ namespace PracticaLogin
             lblMensajeRegistro.Text = "";
         }
 
-        // --- LÓGICA DE LOGIN (MODIFICADA) ---
+        // --- LÓGICA DE LOGIN ---
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             string user = txtUsuarioLogin.Text;
             string pass = txtPasswordLogin.Password;
+
+            // 1. Resetear interfaz (esconder botón apelar)
+            btnApelar.Visibility = Visibility.Collapsed;
+            lblMensajeLogin.Text = "";
 
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
@@ -51,41 +57,50 @@ namespace PracticaLogin
                 return;
             }
 
-            // Variable para recibir el mensaje detallado del Helper
+            // 2. Validar Usuario
             string respuestaError;
-
-            // Llamamos al método que ahora nos da el usuario Y el mensaje de error si falla
+            // Usamos el Helper inteligente que detecta si el baneo caducó
             Usuario usuarioLogueado = DatabaseHelper.ValidateUser(user, pass, out respuestaError);
 
             if (usuarioLogueado != null)
             {
-                // LOGIN ÉXITO
+                // ÉXITO -> Abrimos Home
                 HomeWindow home = new HomeWindow(usuarioLogueado);
                 home.Show();
                 this.Close();
             }
             else
             {
-                // LOGIN FALLIDO
-                // Mostramos el error en el texto rojo (en mayúsculas para que resalte)
+                // FALLO -> Mostramos el error
                 lblMensajeLogin.Text = respuestaError.ToUpper();
 
-                // Si el error es BANEO, sacamos la ventana personalizada ROJA
-                if (respuestaError.Contains("BLOQUEADO") || respuestaError.Contains("BANEADA"))
+                // 3. DETECTAR SI ES BANEO PARA MOSTRAR BOTÓN APELAR
+                // Buscamos palabras clave que pusimos en el Helper ("BANEADO", "SUSPENDIDA", "BLOQUEADO")
+                if (respuestaError.Contains("BANEADO") || respuestaError.Contains("SUSPENDIDA") || respuestaError.Contains("BLOQUEADO"))
                 {
-                    var alerta = new CustomMessageBox(
-                        "ACCESO DENEGADO",
-                        "Tu cuenta ha sido suspendida permanentemente por decisión de un administrador.",
-                        Brushes.Red
-                    );
+                    // Mostramos la alerta visual bonita
+                    var alerta = new CustomMessageBox("ACCESO DENEGADO", respuestaError, Brushes.Red);
                     alerta.ShowDialog();
+
+                    // ¡AQUÍ APARECE EL BOTÓN!
+                    btnApelar.Visibility = Visibility.Visible;
                 }
                 else
                 {
-                    // Si solo es contraseña incorrecta, limpiamos el campo
+                    // Si es contraseña incorrecta, solo borramos el campo pass
                     txtPasswordLogin.Password = "";
                 }
             }
+        }
+
+        // --- BOTÓN DE APELAR ---
+        private void BtnApelar_Click(object sender, RoutedEventArgs e)
+        {
+            // Pasamos el nombre de usuario escrito para que no tenga que volver a ponerlo
+            string usuarioBaneado = txtUsuarioLogin.Text;
+
+            EnviarApelacionWindow ventana = new EnviarApelacionWindow(usuarioBaneado);
+            ventana.ShowDialog();
         }
 
         // --- LÓGICA DE REGISTRO ---
@@ -101,22 +116,21 @@ namespace PracticaLogin
 
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass) || string.IsNullOrEmpty(mail))
             {
-                lblMensajeRegistro.Text = "Campos obligatorios vacíos.";
+                lblMensajeRegistro.Text = "Faltan campos obligatorios.";
                 return;
             }
 
-            bool registroExitoso = DatabaseHelper.RegisterUser(nom, ape, user, pass, mail, tlf, cp);
+            bool exito = DatabaseHelper.RegisterUser(nom, ape, user, pass, mail, tlf, cp);
 
-            if (registroExitoso)
+            if (exito)
             {
-                // Usamos la ventana personalizada para el éxito también
-                var exito = new CustomMessageBox("BIENVENIDO", "¡Cuenta creada con éxito! Ahora inicia sesión.", Brushes.Cyan);
-                exito.ShowDialog();
+                var msg = new CustomMessageBox("BIENVENIDO", "¡Cuenta creada! Inicia sesión.", Brushes.Cyan);
+                msg.ShowDialog();
                 IrALogin_Click(sender, e);
             }
             else
             {
-                lblMensajeRegistro.Text = "Error: El usuario ya existe.";
+                lblMensajeRegistro.Text = "El usuario ya existe.";
             }
         }
     }

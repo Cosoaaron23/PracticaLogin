@@ -36,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\background.jpg" />
     <Resource Include="Assets\logo.ico" />
     <Resource Include="Assets\juego1.jpg" />
