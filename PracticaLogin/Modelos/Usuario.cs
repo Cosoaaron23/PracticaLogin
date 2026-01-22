@@ -11,6 +11,8 @@ namespace PracticaLogin
         public string Rol { get; set; }
         public bool Activo { get; set; }
 
+        public string Suscripcion { get; set; }
+
         // --- NUEVOS CAMPOS ---
         public int GradoBaneo { get; set; }     // 1-5
         public DateTime? FinBaneo { get; set; } // Fecha fin
