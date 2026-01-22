@@ -1,82 +1,116 @@
-esta es el schema sql para que funcione la bbdd:
+# 🎮 AKAY Launcher
 
+**AKAY Launcher** es una aplicación de escritorio moderna desarrollada en **C# y WPF** que simula una plataforma de gestión de videojuegos (estilo Steam o Epic Games).
 
--- =======================================================
--- SCRIPT COMPLETO: PRÁCTICA 4 + EXTENSIÓN (LOGS)
--- =======================================================
+El proyecto destaca por su **Interfaz de Usuario (UI) personalizada "Dark Gamer"**, eliminando los bordes estándar de Windows para ofrecer una experiencia inmersiva con transparencias, efectos de desenfoque y controles personalizados. Además, cuenta con un robusto sistema de administración, gestión de usuarios y sistema de sanciones automatizado.
 
--- 1. Crear la Base de Datos
+---
+
+## ✨ Características Principales
+
+### 🎨 Diseño y Experiencia de Usuario (UX)
+* **Ventana Personalizada:** Sin bordes de sistema, con controles de ventana (Minimizar, Maximizar/Restaurar, Cerrar) hechos a medida.
+* **Diseño Elástico:** La aplicación se adapta a cualquier resolución y arranca en pantalla completa.
+* **Dimmer Overlay:** Sistema de "velo negro" que oscurece el fondo al abrir ventanas modales, evitando el uso de opacidad que transparenta el escritorio.
+* **Estética Gamer:** Colores neón (Cian/Rojo), fondos oscuros y efectos visuales en Hover.
+
+### 🔐 Autenticación y Seguridad
+* **Login y Registro:** Conexión segura a base de datos MySQL.
+* **Validación de Acceso:** Detección automática de credenciales incorrectas o cuentas baneadas.
+* **Teclas Rápidas:** Soporte para tecla `ENTER` en formularios.
+
+### 🛡️ Sistema de Administración y Bans (Core)
+* **Grados de Sanción:** Sistema escalonado de 5 niveles:
+    1.  1 Día
+    2.  3 Días
+    3.  1 Semana
+    4.  1 Mes
+    5.  Permanente
+* **Auto-Desbaneo (Lazy Update):** El sistema comprueba automáticamente al iniciar sesión si el tiempo de castigo ha expirado. Si es así, libera al usuario y le permite entrar sin intervención manual.
+* **Panel de Admin:**
+    * Buscador de usuarios en tiempo real.
+    * Edición de Roles (User/Admin) y Contraseñas.
+    * Visualización del tiempo restante de baneo (con cuenta atrás legible).
+    * Botones de acción rápida: Aplicar sanción, Levantar castigo.
+
+### 📩 Sistema de Apelaciones
+* **Buzón de Baneados:** Los usuarios bloqueados pueden enviar mensajes de apelación desde la pantalla de login.
+* **Gestión de Mensajes:** El administrador puede leer las apelaciones en una tabla dedicada y eliminarlas tras su revisión.
+
+---
+
+## 📸 Capturas de Pantalla
+
+*(Sube tus imágenes a una carpeta llamada 'Screenshots' y descomenta estas líneas)*
+
+| Login Screen | Panel de Admin |
+|:---:|:---:|
+| | |
+
+| Home Gamer | Buzón de Apelaciones |
+|:---:|:---:|
+| | |
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+* **Lenguaje:** C# (.NET Framework / .NET Core)
+* **Framework UI:** WPF (Windows Presentation Foundation)
+* **Base de Datos:** MySQL
+* **Librería SQL:** MySql.Data
+* **IDE:** Visual Studio 2022
+
+---
+
+## ⚙️ Instalación y Configuración
+
+### 1. Requisitos Previos
+* Visual Studio con la carga de trabajo de desarrollo de escritorio .NET.
+* Servidor MySQL (XAMPP, MySQL Workbench, etc.).
+
+### 2. Configurar la Base de Datos
+Ejecuta el siguiente script SQL en tu gestor de base de datos para crear la estructura y los usuarios de prueba.
+
+```sql
 CREATE DATABASE IF NOT EXISTS akay_data;
 USE akay_data;
 
--- 2. LIMPIEZA: Borrar tablas antiguas para evitar errores
--- (Importante: Borrar primero log_actividad porque depende de usuarios)
-DROP TABLE IF EXISTS log_actividad;
-DROP TABLE IF EXISTS usuarios;
-
--- 3. TABLA USUARIOS (Modificada para Práctica 4)
--- Incluye Roles, Email y Estado (Activo/Baneado) [cite: 26, 29, 30, 31]
-CREATE TABLE usuarios (
+-- Tabla de Usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    
-    -- Campos básicos de identidad
-    nombre VARCHAR(100),
-    apellidos VARCHAR(100),
+    nombre VARCHAR(50),
+    apellidos VARCHAR(50),
     username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL, 
-    email VARCHAR(100),              -- Requisito Práctica 4 [cite: 30]
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
     telefono VARCHAR(20),
     cp VARCHAR(10),
-    
-    -- Lógica de Negocio y Seguridad
-    rol VARCHAR(20) DEFAULT 'USER',  -- 'ADMIN' o 'USER' [cite: 29]
-    activo TINYINT(1) DEFAULT 1,     -- 1 = Activo, 0 = Baneado [cite: 31]
-    suscripcion VARCHAR(20) DEFAULT 'FREE',
-    
-    -- Campos extra de seguridad (intentos fallidos)
-    intentos_fallidos INT DEFAULT 0,
-    bloqueado_hasta DATETIME NULL
+    rol VARCHAR(20) DEFAULT 'USER',
+    activo TINYINT(1) DEFAULT 1,
+    grado_baneo INT DEFAULT 0,
+    fin_baneo DATETIME DEFAULT NULL
 );
 
--- 4. TABLA LOG DE ACTIVIDAD (La Extensión del PDF)
--- Registra qué admin hizo qué cambio y cuándo 
-CREATE TABLE log_actividad (
-    id_log INT AUTO_INCREMENT PRIMARY KEY,
-    
-    id_admin INT NOT NULL,           -- QUIÉN hizo la acción
-    accion VARCHAR(50),              -- TIPO (LOGIN, UPDATE, BAN, DELETE)
-    descripcion TEXT,                -- QUÉ hizo (Detalle legible)
-    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP, -- CUÁNDO
-    
-    -- Relación: Un log pertenece a un usuario (que debe ser admin)
-    CONSTRAINT fk_log_admin FOREIGN KEY (id_admin) 
-    REFERENCES usuarios(id) 
-    ON DELETE CASCADE -- Si borras al admin, se borran sus logs (opcional)
+-- Tabla de Apelaciones
+CREATE TABLE IF NOT EXISTS apelaciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50),
+    mensaje TEXT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================================================
--- DATOS DE PRUEBA (SEEDERS)
--- =======================================================
+-- --- DATOS DE PRUEBA (Dummies) ---
 
--- 1. CREAR ADMINISTRADOR
-INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, suscripcion)
-VALUES ('Jefe', 'Supremo', 'admin', 'admin123', 'admin@akay.com', 'ADMIN', 1, 'VIP');
+-- 1. Admin Supremo
+INSERT INTO usuarios (nombre, username, password, email, rol, activo)
+VALUES ('Admin', 'admin', 'admin123', 'admin@akay.com', 'ADMIN', 1);
 
--- 2. CREAR USUARIO NORMAL
-INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, suscripcion)
-VALUES ('Pepito', 'Jugador', 'user', '1234', 'pepe@correo.com', 'USER', 1, 'FREE');
+-- 2. Usuario Normal
+INSERT INTO usuarios (nombre, username, password, email, rol, activo)
+VALUES ('Pepe', 'user', '1234', 'user@akay.com', 'USER', 1);
 
--- 3. CREAR USUARIO PARA PRUEBAS DE BANEO
-INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, suscripcion)
-VALUES ('Usuario', 'Malo', 'baneado', '1234', 'banned@correo.com', 'USER', 0, 'FREE');
+-- 3. Usuario Baneado (Grado 5 - Permanente)
+INSERT INTO usuarios (nombre, username, password, email, rol, activo, grado_baneo, fin_baneo)
+VALUES ('Hacker', 'baneado', '1234', 'ban@akay.com', 'USER', 0, 5, '9999-12-31 23:59:59');
 
--- 4. CREAR UN LOG DE EJEMPLO
--- Para que cuando abras la ventana de reportes no salga vacía al principio
-INSERT INTO log_actividad (id_admin, accion, descripcion, fecha_hora)
-VALUES (1, 'INIT', 'Inicialización del sistema y creación de usuarios base', NOW());
-
--- =======================================================
--- COMPROBACIÓN FINAL
--- =======================================================
-SELECT * FROM usuarios;
-SELECT * FROM log_actividad;
