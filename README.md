@@ -68,6 +68,7 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est√
 ### 1. Clonar el Repositorio
 ```bash
 git clone [https://github.com/TU_USUARIO/PracticaLogin.git](https://github.com/TU_USUARIO/PracticaLogin.git)
+```
 
 ### 2. Configurar la Base de Datos
 Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el script:
