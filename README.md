@@ -69,11 +69,10 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 ```bash
 git clone [https://github.com/TU_USUARIO/PracticaLogin.git](https://github.com/TU_USUARIO/PracticaLogin.git)
 
-
 2. Configurar la Base de Datos
-Este proyecto requiere una base de datos MySQL. Ejecuta el siguiente script para crear la estructura completa (usuarios, log_actividad, apelaciones) y los datos de prueba.
+Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el script:
 
-<details> <summary><strong>🔻 HAZ CLICK AQUÍ PARA VER EL SCRIPT SQL</strong></summary>
+<details> <summary>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</summary>
 
 DROP DATABASE IF EXISTS akay_data;
 CREATE DATABASE akay_data;
@@ -129,6 +128,7 @@ VALUES ('user', '1234', 'user@email.com', 'USER', 1);
 -- Usuario Baneado (Ejemplo)
 INSERT INTO usuarios (username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('baneado', '1234', 'ban@email.com', 'USER', 0, 1, DATE_ADD(NOW(), INTERVAL 1 DAY));
+
 </details>
 
 3. Conexión
@@ -136,12 +136,12 @@ Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coi
 
 private static string connectionString = "Server=localhost;Database=akay_data;Uid=root;Pwd=TU_CONTRASEÑA;";
 
-👤 Credenciales Demo
-
 Rol,Usuario,Contraseña
 Admin,admin,admin123
 User,user,1234
 Baneado,baneado,1234
+
+
 
 📄 Licencia
 Este proyecto es una práctica académica y se distribuye bajo la licencia MIT.
