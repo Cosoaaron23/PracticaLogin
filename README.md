@@ -69,12 +69,13 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 ```bash
 git clone [https://github.com/TU_USUARIO/PracticaLogin.git](https://github.com/TU_USUARIO/PracticaLogin.git)
 
-2. Configurar la Base de Datos
+### 2. Configurar la Base de Datos
 Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el script:
 
 <details>
-<summary>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</summary>
+<summary><strong>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</strong></summary>
 
+```sql
 DROP DATABASE IF EXISTS akay_data;
 CREATE DATABASE akay_data;
 USE akay_data;
