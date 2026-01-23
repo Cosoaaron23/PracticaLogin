@@ -131,10 +131,10 @@ VALUES ('user', '1234', 'user@email.com', 'USER', 1);
 -- Usuario Baneado (Ejemplo)
 INSERT INTO usuarios (username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('baneado', '1234', 'ban@email.com', 'USER', 0, 1, DATE_ADD(NOW(), INTERVAL 1 DAY));
-
+```
 
 </details>
-```
+
 
 3. Conexión
 Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coincida con tu MySQL local:
