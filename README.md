@@ -72,7 +72,8 @@ git clone [https://github.com/TU_USUARIO/PracticaLogin.git](https://github.com/T
 2. Configurar la Base de Datos
 Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el script:
 
-<details> <summary>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</summary>
+<details>
+<summary>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</summary>
 
 DROP DATABASE IF EXISTS akay_data;
 CREATE DATABASE akay_data;
