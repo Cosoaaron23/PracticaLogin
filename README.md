@@ -43,13 +43,18 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 
 | Login Screen | Panel de Admin |
 |:---:|:---:|
-| ![Login](screenshots/login.png) | ![Admin](screenshots/admin.png) |
+| ![Login](<img width="883" height="532" alt="image" src="https://github.com/user-attachments/assets/ed482e1a-914a-4aef-aa64-8173a13d842b" />) | ![Admin](<img width="1197" height="693" alt="image" src="https://github.com/user-attachments/assets/6e844f22-3f0c-4b09-bf47-a99e8d27d4e6" />) |
 
 | Alertas Custom | Visor de Reportes |
 |:---:|:---:|
-| ![Alertas](screenshots/alert.png) | ![Reportes](screenshots/report.png) |
+| ![Alertas](<img width="450" height="247" alt="image" src="https://github.com/user-attachments/assets/44f2cff7-a9bc-4086-82f2-835d7da49ac4" />
+) | ![Reportes](<img width="800" height="602" alt="image" src="https://github.com/user-attachments/assets/18026018-02f3-465e-af5f-3cc2f3ff4f77" />
+) |
 
 *(Asegúrate de subir tus imágenes a una carpeta 'screenshots' en el repo)*
+
+
+
 
 ---
 
@@ -136,7 +141,7 @@ VALUES ('baneado', '1234', 'ban@email.com', 'USER', 0, 1, DATE_ADD(NOW(), INTERV
 </details>
 
 
-3. Conexión
+### 3. Conexión
 Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coincida con tu MySQL local:
 
 ```
