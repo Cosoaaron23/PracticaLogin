@@ -49,7 +49,6 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 |:---:|:---:|
 | <img src="screenshots/home.png" alt="Home" width="400px"> | <img src="screenshots/reportes.png" alt="Reportes" width="400px"> |
 
-*(Asegúrate de subir tus imágenes a una carpeta 'screenshots' en el repo)*
 
 
 ---
@@ -145,14 +144,14 @@ Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coi
 private static string connectionString = "Server=localhost;Database=akay_data;Uid=root;Pwd=TU_CONTRASEÑA;";
 
 ```
-👤 Credenciales Demo
+## 👤 Credenciales Demo
 
-Rol,Usuario,Contraseña
-Admin,admin,admin123
-User,user,1234
-Baneado,baneado,1234
+| Rol | Usuario | Contraseña |
+| :--- | :--- | :--- |
+| **Admin** | `admin` | `admin123` |
+| **User** | `user` | `1234` |
+| **Baneado** | `baneado` | `1234` |
 
 
-
-📄 Licencia
+## 📄 Licencia
 Este proyecto es una práctica académica y se distribuye bajo la licencia MIT.
