@@ -43,15 +43,11 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 
 | Login Screen | Panel de Admin |
 |:---:|:---:|
-| <img src="<img width="881" height="532" alt="image" src="https://github.com/user-attachments/assets/8acd81bf-135e-4c9c-94bf-676dd4e44228" />
-" alt="Login" width="400px"> | <img src="<img width="1202" height="708" alt="image" src="https://github.com/user-attachments/assets/fb3774a3-303a-4da9-a2c6-01615186a318" />
-" alt="Admin" width="400px"> |
+| <img src="screenshots/login.png" alt="Login" width="400px"> | <img src="screenshots/admin.png" alt="Admin" width="400px"> |
 
-| Home | Visor de Reportes |
+| Home Gamer | Visor de Reportes |
 |:---:|:---:|
-| <img src="<img width="1912" height="937" alt="image" src="https://github.com/user-attachments/assets/18aa306c-5648-4cfc-bd9c-d0bd531b928e" />
-" alt="Home" width="400px"> | <img src="<img width="801" height="604" alt="image" src="https://github.com/user-attachments/assets/839bf942-6923-4dd3-ba13-e8ac05b913b4" />
-" alt="Reportes" width="400px"> |
+| <img src="screenshots/home.png" alt="Home" width="400px"> | <img src="screenshots/report.png" alt="Reportes" width="400px"> |
 
 *(Asegúrate de subir tus imágenes a una carpeta 'screenshots' en el repo)*
 
