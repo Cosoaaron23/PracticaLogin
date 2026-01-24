@@ -47,7 +47,7 @@ El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes est�
 
 | Home Gamer | Visor de Reportes |
 |:---:|:---:|
-| <img src="screenshots/home.png" alt="Home" width="400px"> | <img src="screenshots/report.png" alt="Reportes" width="400px"> |
+| <img src="screenshots/home.png" alt="Home" width="400px"> | <img src="screenshots/reportes.png" alt="Reportes" width="400px"> |
 
 *(Asegúrate de subir tus imágenes a una carpeta 'screenshots' en el repo)*
 
