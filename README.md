@@ -1,116 +1,157 @@
-# 🎮 AKAY Launcher
+# 🛡️ AKAY SYSTEM - Admin & Launcher
 
-**AKAY Launcher** es una aplicación de escritorio moderna desarrollada en **C# y WPF** que simula una plataforma de gestión de videojuegos (estilo Steam o Epic Games).
+![.NET Core](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
+![WPF](https://img.shields.io/badge/WPF-Windows-blue?style=for-the-badge)
+![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 
-El proyecto destaca por su **Interfaz de Usuario (UI) personalizada "Dark Gamer"**, eliminando los bordes estándar de Windows para ofrecer una experiencia inmersiva con transparencias, efectos de desenfoque y controles personalizados. Además, cuenta con un robusto sistema de administración, gestión de usuarios y sistema de sanciones automatizado.
+**AKAY SYSTEM** es una aplicación de escritorio moderna desarrollada en **C# y WPF** que simula una plataforma de gestión de videojuegos y administración de usuarios.
+
+El proyecto destaca por su **Interfaz "Dark Gamer"**, eliminando los bordes estándar de Windows para ofrecer una experiencia inmersiva con ventanas personalizadas, efectos de neón y un sistema robusto de gestión de datos.
 
 ---
 
 ## ✨ Características Principales
 
 ### 🎨 Diseño y Experiencia de Usuario (UX)
-* **Ventana Personalizada:** Sin bordes de sistema, con controles de ventana (Minimizar, Maximizar/Restaurar, Cerrar) hechos a medida.
-* **Diseño Elástico:** La aplicación se adapta a cualquier resolución y arranca en pantalla completa.
-* **Dimmer Overlay:** Sistema de "velo negro" que oscurece el fondo al abrir ventanas modales, evitando el uso de opacidad que transparenta el escritorio.
-* **Estética Gamer:** Colores neón (Cian/Rojo), fondos oscuros y efectos visuales en Hover.
-
-### 🔐 Autenticación y Seguridad
-* **Login y Registro:** Conexión segura a base de datos MySQL.
-* **Validación de Acceso:** Detección automática de credenciales incorrectas o cuentas baneadas.
-* **Teclas Rápidas:** Soporte para tecla `ENTER` en formularios.
+* **Ventana Personalizada:** Sin bordes de sistema (WindowStyle None), con controles de ventana hechos a medida.
+* **Alertas Propias:** Se ha eliminado el `MessageBox` nativo de Windows. Ahora el sistema usa **ventanas de diálogo personalizadas** (`CustomMessageBox`) con estética oscura y colores semánticos (Rojo para eliminar, Verde para éxito, Cian para info).
+* **Dimmer Overlay:** Sistema de "velo negro" que oscurece el fondo al abrir ventanas modales.
+* **Estética Gamer:** Paleta de colores Neón (Cian/Rojo) sobre fondos oscuros `#181818`.
 
 ### 🛡️ Sistema de Administración y Bans (Core)
-* **Grados de Sanción:** Sistema escalonado de 5 niveles:
-    1.  1 Día
-    2.  3 Días
-    3.  1 Semana
-    4.  1 Mes
-    5.  Permanente
-* **Auto-Desbaneo (Lazy Update):** El sistema comprueba automáticamente al iniciar sesión si el tiempo de castigo ha expirado. Si es así, libera al usuario y le permite entrar sin intervención manual.
-* **Panel de Admin:**
-    * Buscador de usuarios en tiempo real.
-    * Edición de Roles (User/Admin) y Contraseñas.
-    * Visualización del tiempo restante de baneo (con cuenta atrás legible).
-    * Botones de acción rápida: Aplicar sanción, Levantar castigo.
+* **Grados de Sanción:** Sistema escalonado de 5 niveles con cálculo automático de fechas:
+    1. 1 Día
+    2. 3 Días
+    3. 1 Semana
+    4. 1 Mes
+    5. Permanente
+* **Auto-Desbaneo (Lazy Update):** Al iniciar sesión, el sistema verifica matemáticamente si la sanción ha expirado y libera al usuario automáticamente.
+* **Panel de Admin Avanzado:**
+    * Buscador en tiempo real.
+    * Visualización de fecha exacta de fin de baneo.
+    * Edición rápida de roles y contraseñas.
 
-### 📩 Sistema de Apelaciones
-* **Buzón de Baneados:** Los usuarios bloqueados pueden enviar mensajes de apelación desde la pantalla de login.
-* **Gestión de Mensajes:** El administrador puede leer las apelaciones en una tabla dedicada y eliminarlas tras su revisión.
+### 📊 Reportes y Logs
+* **Auditoría Completa:** Cada acción importante (banear, crear usuario, borrar) queda registrada en la base de datos `log_actividad`.
+* **Visor de Reportes:** Ventana integrada estilo "Terminal" que genera un informe detallado de la actividad de los administradores.
+* **Sistema de Apelaciones:** Buzón donde los usuarios baneados pueden solicitar el desbloqueo.
 
 ---
 
-## 📸 Capturas de Pantalla
-
-*(Sube tus imágenes a una carpeta llamada 'Screenshots' y descomenta estas líneas)*
+## 📷 Capturas de Pantalla
 
 | Login Screen | Panel de Admin |
 |:---:|:---:|
-| | |
+| <img src="screenshots/login.png" alt="Login" width="400px"> | <img src="screenshots/admin.png" alt="Admin" width="400px"> |
 
-| Home Gamer | Buzón de Apelaciones |
+| Home Gamer | Visor de Reportes |
 |:---:|:---:|
-| | |
+| <img src="screenshots/home.png" alt="Home" width="400px"> | <img src="screenshots/reportes.png" alt="Reportes" width="400px"> |
+
+
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías
 
-* **Lenguaje:** C# (.NET Framework / .NET Core)
-* **Framework UI:** WPF (Windows Presentation Foundation)
+* **Lenguaje:** C# (.NET Framework / Core)
+* **Interfaz:** WPF (Windows Presentation Foundation)
 * **Base de Datos:** MySQL
-* **Librería SQL:** MySql.Data
+* **Librería:** `MySql.Data`
 * **IDE:** Visual Studio 2022
 
 ---
 
 ## ⚙️ Instalación y Configuración
 
-### 1. Requisitos Previos
-* Visual Studio con la carga de trabajo de desarrollo de escritorio .NET.
-* Servidor MySQL (XAMPP, MySQL Workbench, etc.).
+### 1. Clonar el Repositorio
+```bash
+git clone [https://github.com/TU_USUARIO/PracticaLogin.git](https://github.com/TU_USUARIO/PracticaLogin.git)
+```
 
 ### 2. Configurar la Base de Datos
-Ejecuta el siguiente script SQL en tu gestor de base de datos para crear la estructura y los usuarios de prueba.
+Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el script:
+
+<details>
+<summary><strong>🔻 CLICK AQUÍ PARA VER EL SCRIPT SQL</strong></summary>
 
 ```sql
-CREATE DATABASE IF NOT EXISTS akay_data;
+DROP DATABASE IF EXISTS akay_data;
+CREATE DATABASE akay_data;
 USE akay_data;
 
--- Tabla de Usuarios
-CREATE TABLE IF NOT EXISTS usuarios (
+-- 1. TABLA USUARIOS
+CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50),
-    apellidos VARCHAR(50),
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    nombre VARCHAR(100),
+    apellidos VARCHAR(100),
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(255),
     email VARCHAR(100),
     telefono VARCHAR(20),
     cp VARCHAR(10),
     rol VARCHAR(20) DEFAULT 'USER',
     activo TINYINT(1) DEFAULT 1,
     grado_baneo INT DEFAULT 0,
-    fin_baneo DATETIME DEFAULT NULL
+    fin_baneo DATETIME NULL,
+    suscripcion VARCHAR(20) DEFAULT 'FREE'
 );
 
--- Tabla de Apelaciones
-CREATE TABLE IF NOT EXISTS apelaciones (
+-- 2. TABLA LOGS (Para los reportes)
+CREATE TABLE log_actividad (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    id_admin INT NOT NULL,
+    accion VARCHAR(50),
+    descripcion TEXT,
+    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_admin) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- 3. TABLA APELACIONES
+CREATE TABLE apelaciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario VARCHAR(50),
+    id_usuario INT NOT NULL,
+    username VARCHAR(50),
     mensaje TEXT,
-    fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- --- DATOS DE PRUEBA (Dummies) ---
+-- --- DATOS DE PRUEBA (SEEDERS) ---
 
--- 1. Admin Supremo
-INSERT INTO usuarios (nombre, username, password, email, rol, activo)
-VALUES ('Admin', 'admin', 'admin123', 'admin@akay.com', 'ADMIN', 1);
+-- Admin Principal
+INSERT INTO usuarios (username, password, email, rol, activo, suscripcion)
+VALUES ('admin', 'admin123', 'admin@akay.com', 'ADMIN', 1, 'VIP');
 
--- 2. Usuario Normal
-INSERT INTO usuarios (nombre, username, password, email, rol, activo)
-VALUES ('Pepe', 'user', '1234', 'user@akay.com', 'USER', 1);
+-- Usuario Normal
+INSERT INTO usuarios (username, password, email, rol, activo)
+VALUES ('user', '1234', 'user@email.com', 'USER', 1);
 
--- 3. Usuario Baneado (Grado 5 - Permanente)
-INSERT INTO usuarios (nombre, username, password, email, rol, activo, grado_baneo, fin_baneo)
-VALUES ('Hacker', 'baneado', '1234', 'ban@akay.com', 'USER', 0, 5, '9999-12-31 23:59:59');
+-- Usuario Baneado (Ejemplo)
+INSERT INTO usuarios (username, password, email, rol, activo, grado_baneo, fin_baneo)
+VALUES ('baneado', '1234', 'ban@email.com', 'USER', 0, 1, DATE_ADD(NOW(), INTERVAL 1 DAY));
+```
 
+</details>
+
+
+### 3. Conexión
+Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coincida con tu MySQL local:
+
+```
+
+private static string connectionString = "Server=localhost;Database=akay_data;Uid=root;Pwd=TU_CONTRASEÑA;";
+
+```
+## 👤 Credenciales Demo
+
+| Rol | Usuario | Contraseña |
+| :--- | :--- | :--- |
+| **Admin** | `admin` | `admin123` |
+| **User** | `user` | `1234` |
+| **Baneado** | `baneado` | `1234` |
+
+
+## 📄 Licencia
+Este proyecto es una práctica académica y se distribuye bajo la licencia MIT.
