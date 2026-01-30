@@ -289,7 +289,7 @@ SET SQL_SAFE_UPDATES = 1;
 
 </details>
 
-
+```
 ### 3. Conexión
 Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coincida con tu MySQL local:
 
