@@ -5,8 +5,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 
 namespace PracticaLogin
 {
@@ -251,6 +253,43 @@ namespace PracticaLogin
             // Ahora pasamos "_usuarioActual" para saber quién envía la queja
             new SoporteWindow(_usuarioActual).ShowDialog();
         }
+
+        // Añade esta variable a nivel de clase
+        private bool _isMenuOpen = true;
+
+        // Añade este método para el botón hamburguesa
+        private void BtnMenu_Click(object sender, RoutedEventArgs e)
+        {
+            // Configuramos la animación
+            DoubleAnimation animation = new DoubleAnimation();
+            animation.Duration = TimeSpan.FromSeconds(0.3); // Duración: 0.3 segundos
+
+            // Efecto de suavizado (rebote suave al final)
+            animation.EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut };
+
+            if (_isMenuOpen)
+            {
+                // Si está abierto -> lo cerramos a ancho 0
+                animation.To = 0;
+                _isMenuOpen = false;
+
+                // Opcional: Quitar margen para que no ocupe espacio extra
+                SideMenuBorder.Margin = new Thickness(0, 20, 0, 20);
+            }
+            else
+            {
+                // Si está cerrado -> lo abrimos a ancho 250
+                animation.To = 250;
+                _isMenuOpen = true;
+
+                // Restauramos el margen original
+                SideMenuBorder.Margin = new Thickness(20, 20, 0, 20);
+            }
+
+            // Iniciamos la animación sobre la propiedad Width
+            SideMenuBorder.BeginAnimation(Border.WidthProperty, animation);
+        }
+
         private void BtnSuscripciones_Click(object sender, RoutedEventArgs e) { new SubscriptionsWindow(_usuarioActual).ShowDialog(); }
         private void BtnConfiguracion_Click(object sender, RoutedEventArgs e) { new ConfigWindow(_usuarioActual).ShowDialog(); }
         private void AbrirSeccion(string t) { new SubVentana(t).ShowDialog(); }
