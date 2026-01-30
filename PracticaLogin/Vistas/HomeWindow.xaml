@@ -9,9 +9,12 @@
         WindowState="Maximized"
         AllowsTransparency="True"
         Background="Transparent"
-        Icon="/Assets/logo.ico">
+        Icon="/Assets/logo.ico"
+        Loaded="Window_Loaded">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <Style x:Key="WindowControlBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="#888888"/>
@@ -97,11 +100,11 @@
         </Style>
 
         <Style x:Key="GameCard" TargetType="Border">
-            <Setter Property="Width" Value="200"/>
+            <Setter Property="Width" Value="220"/>
             <Setter Property="Height" Value="280"/>
-            <Setter Property="Margin" Value="20"/>
-            <Setter Property="Background" Value="#CC121212"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="15"/>
+            <Setter Property="Background" Value="#151515"/>
+            <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="ClipToBounds" Value="True"/>
             <Setter Property="BorderBrush" Value="#333333"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -111,7 +114,7 @@
                     <Setter Property="BorderBrush" Value="#00E5FF"/>
                     <Setter Property="Effect">
                         <Setter.Value>
-                            <DropShadowEffect Color="#00E5FF" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+                            <DropShadowEffect Color="#00E5FF" BlurRadius="20" ShadowDepth="0" Opacity="0.5"/>
                         </Setter.Value>
                     </Setter>
                 </Trigger>
@@ -142,6 +145,56 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="SearchTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#222"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                                <TextBlock Text="🔍 Buscar juego..." Foreground="#666" Margin="12,8" IsHitTestVisible="False"
+                                           Visibility="{Binding Text.IsEmpty, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#00E5FF"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#00E5FF" BlurRadius="5" ShadowDepth="0" Opacity="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FilterComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="#00E5FF"/>
+            <Setter Property="BorderBrush" Value="#00E5FF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#00E5FF" BlurRadius="5" ShadowDepth="0" Opacity="0.3"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Border Background="#121212" BorderBrush="#FF4444" BorderThickness="1">
@@ -152,7 +205,14 @@
                         <TranslateTransform x:Name="BackgroundTranslateTransform"/>
                     </Image.RenderTransform>
                 </Image>
-                <Rectangle Fill="#88000000"/>
+                <Rectangle>
+                    <Rectangle.Fill>
+                        <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
+                            <GradientStop Color="#99000000" Offset="0"/>
+                            <GradientStop Color="#FF050505" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
             </Grid>
 
             <Grid>
@@ -170,9 +230,8 @@
                     <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
                             <Image Source="/Assets/logo.ico" Height="16" Margin="0,0,10,0"/>
-                            <TextBlock Text="AKAY LAUNCHER" Foreground="#666666" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Text="AKAY LAUNCHER" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="—" Click="BtnMinimizar_Click" Style="{StaticResource WindowControlBtn}"/>
                             <Button x:Name="btnMaximizar" Content="◻" Click="BtnMaximizar_Click" Style="{StaticResource WindowControlBtn}"/>
@@ -181,80 +240,36 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#333333" BorderThickness="0,1,0,1" Background="#66000000">
+                <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#333333" BorderThickness="0,1,0,1" Background="#CC050505">
                     <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="25,0,0,0">
                             <Image Source="/Assets/logo.png" Height="40" RenderOptions.BitmapScalingMode="HighQuality"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Button Content="TIENDA" Click="BtnTienda_Click" Style="{StaticResource TopMenuButton}"/>
                             <Button Content="SUSCRIPCIONES" Click="BtnSuscripciones_Click" Style="{StaticResource TopMenuButton}"/>
                             <Button Content="COMUNIDAD" Click="BtnComunidad_Click" Style="{StaticResource TopMenuButton}"/>
                             <Button Content="SOPORTE" Click="BtnSoporte_Click" Style="{StaticResource TopMenuButton}"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,30,0">
-                            <Button x:Name="btnAdminPanel" Content="⚙ ADMIN" Click="BtnAdminPanel_Click" 
-                                    Style="{StaticResource TopMenuButton}"
-                                    Visibility="Collapsed"
-                                    Foreground="#FF4444" 
-                                    Margin="0,0,15,0"/>
-
-                            <Border x:Name="UserProfileBorder" CornerRadius="20" BorderBrush="#00E5FF" BorderThickness="1" 
-                                    Padding="10,5" Background="#44000000" Cursor="Hand" MouseLeftButtonUp="UserProfile_Click">
+                            <Button Content="🛒 CARRITO" Click="BtnVerCarrito_Click" Style="{StaticResource TopMenuButton}" Foreground="#00FF00" Margin="0,0,15,0"/>
+                            <Button x:Name="btnAdminPanel" Content="⚙ ADMIN" Click="BtnAdminPanel_Click" Style="{StaticResource TopMenuButton}" Visibility="Collapsed" Foreground="#FF4444" Margin="0,0,15,0"/>
+                            <Border x:Name="UserProfileBorder" CornerRadius="20" BorderBrush="#00E5FF" BorderThickness="1" Padding="10,5" Background="#44000000" Cursor="Hand" MouseLeftButtonUp="UserProfile_Click">
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="MainStatusIndicator" Width="12" Height="12" CornerRadius="6" Background="#23A559" Margin="0,0,10,0" BorderBrush="Black" BorderThickness="1"/>
                                     <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <TextBlock Text="▼" Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-
-                            <Popup x:Name="UserMenuPopup" PlacementTarget="{Binding ElementName=UserProfileBorder}" 
-                                   Placement="Bottom" VerticalOffset="-10" 
-                                   StaysOpen="False" AllowsTransparency="True" PopupAnimation="Slide">
+                            <Popup x:Name="UserMenuPopup" PlacementTarget="{Binding ElementName=UserProfileBorder}" Placement="Bottom" VerticalOffset="-10" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Slide">
                                 <Border Background="#18191C" CornerRadius="5" BorderBrush="#202225" BorderThickness="1" Width="220">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="5" Opacity="0.5"/>
-                                    </Border.Effect>
-
                                     <StackPanel Margin="0,5">
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoOnline_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="10" Height="10" CornerRadius="5" Background="#23A559" Margin="0,0,10,0"/>
-                                                <TextBlock Text="Online"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoAusente_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="10" Height="10" CornerRadius="5" Background="#F0B232" Margin="0,0,10,0"/>
-                                                <TextBlock Text="Ausente"/>
-                                            </StackPanel>
-                                        </Button>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoInvisible_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="10" Height="10" CornerRadius="5" Background="#747F8D" Margin="0,0,10,0"/>
-                                                <TextBlock Text="Invisible"/>
-                                            </StackPanel>
-                                        </Button>
-
+                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoOnline_Click" Content="🟢 Online"/>
+                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoAusente_Click" Content="🟡 Ausente"/>
+                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoInvisible_Click" Content="⚪ Invisible"/>
                                         <Separator Background="#333" Margin="10,5"/>
-
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnConfiguracion_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="⚙" Margin="0,0,10,0"/>
-                                                <TextBlock Text="Ajustes de Cuenta"/>
-                                            </StackPanel>
-                                        </Button>
-
+                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnConfiguracion_Click" Content="⚙ Ajustes"/>
                                         <Separator Background="#333" Margin="10,5"/>
-
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnLogout_Click">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="🚪" Margin="0,0,10,0" Foreground="#F04747"/>
-                                                <TextBlock Text="Cerrar Sesión" Foreground="#F04747" FontWeight="Bold"/>
-                                            </StackPanel>
-                                        </Button>
+                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnLogout_Click" Content="🚪 Cerrar Sesión" Foreground="#F04747"/>
                                     </StackPanel>
                                 </Border>
                             </Popup>
@@ -264,57 +279,100 @@
 
                 <Border Grid.Row="2" Grid.Column="0" Margin="20,20,0,20" CornerRadius="15" BorderBrush="#333333" BorderThickness="1" Background="#CC050505">
                     <StackPanel VerticalAlignment="Top" Margin="10,30,10,0">
-                        <TextBlock Text="BIBLIOTECA" Foreground="#666666" FontSize="12" FontWeight="Bold" Margin="15,0,0,10"/>
+                        <TextBlock x:Name="lblTituloSeccion" Text="MERCADO" Foreground="#666666" FontSize="12" FontWeight="Bold" Margin="15,0,0,10"/>
                         <Button Content="DESTACADOS" Click="BtnDestacados_Click" Style="{StaticResource SideMenuButton}"/>
-                        <Button Content="MIS JUEGOS" Click="BtnMisJuegos_Click" Style="{StaticResource SideMenuButton}"/>
+                        <Button Content="TIENDA" Click="BtnTienda_Click" Style="{StaticResource SideMenuButton}"/>
+                        <Button Content="MI BIBLIOTECA" Click="BtnMisJuegos_Click" Style="{StaticResource SideMenuButton}"/>
                         <Separator Background="#333333" Margin="10,20"/>
-                        <TextBlock Text="AKAY v1.0" Foreground="#444" HorizontalAlignment="Center" FontSize="10" Margin="0,20,0,0"/>
+                        <TextBlock Text="AKAY v2.0" Foreground="#444" HorizontalAlignment="Center" FontSize="10" Margin="0,20,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="MainScrollViewer" 
-                              VerticalScrollBarVisibility="Auto" Margin="10,0,0,0"
-                              ScrollChanged="MainScrollViewer_ScrollChanged">
-                    <WrapPanel HorizontalAlignment="Center" Margin="0,30,0,30">
-                        <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego1_Click">
+                <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto" Margin="10,0,0,0" ScrollChanged="MainScrollViewer_ScrollChanged">
+                    <StackPanel Margin="0,20,20,30">
+
+                        <Border Height="300" CornerRadius="12" Margin="0,0,0,20" ClipToBounds="True" Background="#050505" BorderBrush="#333" BorderThickness="1">
                             <Grid>
-                                <Image Source="/Assets/juego1.jpg" Stretch="UniformToFill"/>
-                                <Border Background="#CC000000" VerticalAlignment="Bottom" Height="35">
-                                    <TextBlock Text="INSTALADO" Foreground="#00E5FF" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image x:Name="imgBanner" Stretch="Fill"/>
+                                <Border VerticalAlignment="Bottom" Height="150">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="Transparent" Offset="0"/>
+                                            <GradientStop Color="#E6000000" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
                                 </Border>
+                                <StackPanel VerticalAlignment="Bottom" Margin="30">
+                                    <Border Background="#B71C1C" HorizontalAlignment="Left" CornerRadius="4" Padding="10,4" Margin="0,0,0,10">
+                                        <TextBlock Text="🔥 JUEGO DESTACADO" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                                    </Border>
+                                    <TextBlock x:Name="lblBannerTitulo" Text="CARGANDO..." Foreground="White" FontWeight="Bold" FontSize="40">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="3"/>
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                </StackPanel>
                             </Grid>
                         </Border>
 
-                        <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego2_Click">
-                            <Image Source="/Assets/juego2.jpg" Stretch="UniformToFill"/>
-                        </Border>
+                        <Grid Margin="0,0,20,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="220"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego3_Click">
-                            <Image Source="/Assets/juego3.jpg" Stretch="UniformToFill"/>
-                        </Border>
+                            <TextBox x:Name="txtBusqueda" Style="{StaticResource SearchTextBox}" TextChanged="TxtBusqueda_TextChanged"/>
 
-                        <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego4_Click">
-                            <Image Source="/Assets/juego4.jpg" Stretch="UniformToFill"/>
-                        </Border>
+                            <ComboBox x:Name="cmbFiltro" Grid.Column="2" Style="{StaticResource FilterComboBox}" SelectionChanged="CmbFiltro_SelectionChanged" SelectedIndex="0">
+                                <ComboBoxItem Content="Ordenar: Por Defecto"/>
+                                <ComboBoxItem Content="Nombre (A-Z)"/>
+                                <ComboBoxItem Content="Precio: Menor a Mayor"/>
+                                <ComboBoxItem Content="Precio: Mayor a Menor"/>
+                            </ComboBox>
+                        </Grid>
 
-                        <Border Style="{StaticResource GameCard}" BorderBrush="#FF4081" BorderThickness="2" MouseLeftButtonDown="Juego5_Click">
-                            <Grid>
-                                <Image Source="/Assets/juego7.jpg" Stretch="UniformToFill"/>
-                                <Border Background="#FF4081" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="25" CornerRadius="0,0,0,8">
-                                    <TextBlock Text="NEW" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
-                                </Border>
-                            </Grid>
-                        </Border>
+                        <ItemsControl x:Name="listaJuegos">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
 
-                        <Border Style="{StaticResource GameCard}" MouseLeftButtonDown="Juego6_Click">
-                            <Image Source="/Assets/juego6.jpg" Stretch="UniformToFill"/>
-                        </Border>
-                    </WrapPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource GameCard}" Tag="{Binding Id}" MouseLeftButtonDown="JuegoDinamico_Click">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="60"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Image Source="{Binding ImagenAbsoluta}" Stretch="UniformToFill"/>
+
+                                            <Border Grid.Row="1" Background="#E6050505" BorderBrush="#333" BorderThickness="0,1,0,0">
+                                                <Grid Margin="12,0">
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Titulo}" Foreground="White" FontWeight="Bold" FontSize="13" TextTrimming="CharacterEllipsis" MaxWidth="120"/>
+                                                        <TextBlock Text="{Binding Genero}" Foreground="#888" FontSize="10" Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Precio, StringFormat={}{0:C}}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#00FF00" FontWeight="Bold" FontSize="14"/>
+                                                </Grid>
+                                            </Border>
+
+                                            <Border Background="#FF4081" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="20" CornerRadius="0,0,0,8" Visibility="{Binding EsOnline, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="ONLINE" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
                 </ScrollViewer>
             </Grid>
-
             <Border x:Name="DimmerOverlay" Background="#AA000000" Visibility="Collapsed" IsHitTestVisible="False"/>
-
         </Grid>
     </Border>
 </Window>

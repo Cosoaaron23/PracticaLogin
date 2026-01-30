@@ -1,77 +1,87 @@
 ﻿<Window x:Class="PracticaLogin.GameDetailWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Detalles del Juego" Height="500" Width="800"
+        Title="Detalles del Juego" Height="550" Width="850"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="#121212"
         Icon="/Assets/logo.ico"
-        BorderBrush="#B71C1C"
+        BorderBrush="#00E5FF"
         BorderThickness="2">
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="320"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Column="0" Grid.Row="0" Margin="20" BorderBrush="#333333" BorderThickness="1" Background="Black">
-            <Image x:Name="imgPortada" Stretch="UniformToFill"/>
+        <Border Grid.Column="0" Margin="20" BorderBrush="#333" BorderThickness="1" Background="Black">
+            <Image x:Name="imgPortada" Stretch="Uniform"/>
         </Border>
 
-        <StackPanel Grid.Column="1" Grid.Row="0" Margin="0,30,30,0">
-
-            <TextBlock x:Name="lblTitulo" Text="TÍTULO DEL JUEGO" FontSize="36" FontWeight="Bold" Foreground="#00E5FF" Margin="0,0,0,20">
-                <TextBlock.Effect>
-                    <DropShadowEffect Color="#00E5FF" BlurRadius="15" ShadowDepth="0" Opacity="0.6"/>
-                </TextBlock.Effect>
-            </TextBlock>
+        <StackPanel Grid.Column="1" Margin="20,40,30,0">
+            <TextBlock x:Name="lblTitulo" FontSize="36" FontWeight="Bold" Foreground="#00E5FF" Margin="0,0,0,10"/>
 
             <Grid Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Label Grid.Row="0" Grid.Column="0" Content="GÉNERO:" Foreground="#888888" FontWeight="Bold"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="lblGenero" Text="Acción / RPG" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
-
-                <Label Grid.Row="1" Grid.Column="0" Content="JUGADORES:" Foreground="#888888" FontWeight="Bold"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="lblJugadores" Text="1 Jugador (Offline)" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
-
-                <Label Grid.Row="2" Grid.Column="0" Content="PRECIO:" Foreground="#888888" FontWeight="Bold"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="lblPrecio" Text="59.99€" Foreground="#28A745" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="16"/>
+                <StackPanel>
+                    <TextBlock Text="GÉNERO" Foreground="#888" FontSize="10" FontWeight="Bold"/>
+                    <TextBlock x:Name="lblGenero" Foreground="White" FontSize="14"/>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right">
+                    <TextBlock Text="ESPACIO" Foreground="#888" FontSize="10" FontWeight="Bold"/>
+                    <TextBlock x:Name="lblGigas" Foreground="White" FontSize="14" HorizontalAlignment="Right"/>
+                </StackPanel>
             </Grid>
 
-            <Separator Background="#333333" Margin="0,0,0,20"/>
+            <Separator Background="#333" Margin="0,10"/>
 
-            <TextBlock Text="DESCRIPCIÓN" Foreground="#B71C1C" FontWeight="Bold" Margin="0,0,0,5"/>
-            <TextBlock x:Name="txtDescripcion" Text="Aquí va la descripción larga del juego..." 
-                       Foreground="#CCCCCC" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
+            <TextBlock Text="DESCRIPCIÓN" Foreground="#B71C1C" FontWeight="Bold" Margin="0,10,0,5"/>
+            <TextBlock x:Name="txtDescripcion" Foreground="#CCC" TextWrapping="Wrap" FontSize="14" LineHeight="20"/>
 
-            <Button Content="JUGAR AHORA" Height="45" Width="200" HorizontalAlignment="Left" Margin="0,30,0,0"
-                    Background="#B71C1C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="5"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+            <StackPanel x:Name="panelDescarga" Visibility="Collapsed" Margin="0,30,0,0">
+                <Grid Margin="0,0,0,5">
+                    <TextBlock x:Name="lblPorcentaje" Text="Preparando descarga..." Foreground="#00E5FF" FontWeight="Bold"/>
+                    <TextBlock x:Name="lblVelocidad" Text="0 MB/s" Foreground="#666" HorizontalAlignment="Right"/>
+                </Grid>
+                <ProgressBar x:Name="pbDescarga" Height="8" Background="#111" Foreground="#00E5FF" BorderThickness="0"/>
+            </StackPanel>
 
+            <Grid Margin="0,40,0,0">
+                <Button x:Name="btnCarrito" Content="🛒 AÑADIR AL CARRITO" Click="BtnCarrito_Click" 
+                        Height="45" Width="240" HorizontalAlignment="Left" Background="#00E5FF" Foreground="Black" FontWeight="Bold" Visibility="Collapsed">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button x:Name="btnInstalar" Content="⬇ INSTALAR JUEGO" Click="BtnInstalar_Click" 
+                        Height="45" Width="240" HorizontalAlignment="Left" Background="#B71C1C" Foreground="White" FontWeight="Bold" Visibility="Collapsed">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button x:Name="btnJugar" Content="▶ INICIAR JUEGO" Click="BtnJugar_Click" 
+                        Height="45" Width="240" HorizontalAlignment="Left" Background="#23A559" Foreground="White" FontWeight="Bold" Visibility="Collapsed">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
         </StackPanel>
 
-        <Button Grid.Row="1" Grid.ColumnSpan="2" Content="VOLVER A LA BIBLIOTECA" Click="BtnCerrar_Click"
-                Background="#1E1E1E" Foreground="White" BorderThickness="0,1,0,0" BorderBrush="#333333" FontWeight="Bold" Cursor="Hand"/>
+        <Button Grid.Row="1" Grid.ColumnSpan="2" Content="VOLVER" Click="BtnCerrar_Click"
+                Background="#1E1E1E" Foreground="Gray" BorderThickness="0,1,0,0" BorderBrush="#333" FontWeight="Bold"/>
     </Grid>
 </Window>

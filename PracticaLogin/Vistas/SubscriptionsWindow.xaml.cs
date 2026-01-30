@@ -5,10 +5,8 @@ namespace PracticaLogin
 {
     public partial class SubscriptionsWindow : Window
     {
-        // CAMBIO 1: Guardamos el objeto completo
         private Usuario _usuarioActual;
 
-        // CAMBIO 2: Constructor recibe Usuario
         public SubscriptionsWindow(Usuario usuario)
         {
             InitializeComponent();
@@ -18,10 +16,10 @@ namespace PracticaLogin
 
         private void CargarSuscripcion()
         {
-            // Obtenemos la suscripción usando el ID del objeto
+            // Usamos el ID del usuario para obtener su plan
             string plan = DatabaseHelper.GetSubscription(_usuarioActual.Id);
 
-            // Buscamos el control para poner el texto
+            // Buscamos el control para poner el texto (soporta tanto Label como TextBlock)
             if (this.FindName("lblPlanActual") is TextBlock label)
                 label.Text = "PLAN ACTUAL: " + plan.ToUpper();
             else if (this.FindName("lblPlanActual") is Label labelControl)
@@ -35,17 +33,17 @@ namespace PracticaLogin
 
         private void ActualizarPlan(string plan)
         {
-            DatabaseHelper.UpdateSubscription(_usuarioActual.Username, plan);
+            // CORRECCIÓN AQUÍ: Pasamos '_usuarioActual.Id' (int) en lugar de '.Username'
+            DatabaseHelper.UpdateSubscription(_usuarioActual.Id, plan);
+
             MessageBox.Show($"¡Te has suscrito al plan {plan}!");
             CargarSuscripcion();
         }
 
-        // --- BOTÓN VOLVER (Aquí estaba el otro error) ---
+        // --- BOTÓN VOLVER CORREGIDO ---
         private void BtnVolver_Click(object sender, RoutedEventArgs e)
         {
-            // Pasamos el objeto completo de vuelta al Home
-            HomeWindow home = new HomeWindow(_usuarioActual);
-            home.Show();
+            // Solo cerramos esta ventana, porque la HomeWindow original sigue abierta detrás
             this.Close();
         }
     }

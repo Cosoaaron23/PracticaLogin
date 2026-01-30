@@ -1,181 +1,98 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media; // NECESARIO PARA LOS COLORES (Brushes)
 
 namespace PracticaLogin
 {
     public partial class AdminWindow : Window
     {
-        private int _idAdmin;
-        private List<Usuario> _usuarios;
+        private Usuario _adminUser;
 
-        public AdminWindow(int id)
+        // Constructor: Recibe el usuario completo para leer su ROL
+        public AdminWindow(Usuario adminUser)
         {
             InitializeComponent();
-            _idAdmin = id;
+            _adminUser = adminUser;
+
+            // IMPORTANTE: Llamamos a la función que filtra los botones
+            ConfigurarPermisos();
         }
 
-        // --- CARGA Y EVENTOS DE VENTANA ---
-        private void Window_Loaded(object sender, RoutedEventArgs e) => Cargar();
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.LeftButton == MouseButtonState.Pressed) DragMove(); }
-        private void BtnCerrar_Click(object sender, RoutedEventArgs e) => Close();
-
-        // 1. CARGAR DATOS
-        void Cargar(string filtro = "")
+        private void ConfigurarPermisos()
         {
-            _usuarios = string.IsNullOrEmpty(filtro) ? DatabaseHelper.ObtenerUsuarios() : DatabaseHelper.BuscarUsuarios(filtro);
-            dgUsuarios.ItemsSource = _usuarios;
+            // 1. PRIMERO OCULTAMOS TODO (Reset)
+            btnJuegos.Visibility = Visibility.Collapsed;
+            btnUsuarios.Visibility = Visibility.Collapsed;
+            btnSoporte.Visibility = Visibility.Collapsed;
 
-            // Resetear UI
-            lblSelectedUser.Text = "Ninguno";
-            txtNuevaPass.Password = "";
+            // El botón de reportes lo dejamos visible para todos (opcional)
+            btnReportes.Visibility = Visibility.Visible;
 
-            // Desactivar botones de acción hasta seleccionar usuario
-            if (btnAplicarSancion != null) btnAplicarSancion.IsEnabled = false;
-            if (btnEliminarUser != null) btnEliminarUser.IsEnabled = false;
-            if (btnLevantarCastigo != null) btnLevantarCastigo.Visibility = Visibility.Collapsed;
-        }
+            // 2. MOSTRAMOS SOLO LO QUE PERMITE EL ROL
+            // Usamos .ToUpper() para evitar errores de mayúsculas/minúsculas
+            string rol = _adminUser.Rol.ToUpper();
 
-        // 2. SELECCIÓN EN TABLA
-        private void DgUsuarios_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (dgUsuarios.SelectedItem is Usuario u)
+            switch (rol)
             {
-                lblSelectedUser.Text = u.Username.ToUpper();
+                case "SUPERADMIN":
+                    // El jefe lo ve todo
+                    btnJuegos.Visibility = Visibility.Visible;
+                    btnUsuarios.Visibility = Visibility.Visible;
+                    btnSoporte.Visibility = Visibility.Visible;
+                    break;
 
-                btnAplicarSancion.IsEnabled = true;
-                btnEliminarUser.IsEnabled = true;
+                case "GAME_ADMIN":
+                    // Solo juegos
+                    btnJuegos.Visibility = Visibility.Visible;
+                    break;
 
-                if (u.Activo)
-                {
-                    btnAplicarSancion.Content = "APLICAR SANCIÓN";
-                    btnAplicarSancion.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#333"));
-                    btnAplicarSancion.Foreground = Brushes.Gray;
-                    btnLevantarCastigo.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    btnAplicarSancion.Content = "ACTUALIZAR";
-                    btnAplicarSancion.Background = Brushes.Orange;
-                    btnAplicarSancion.Foreground = Brushes.Black;
-                    btnLevantarCastigo.Visibility = Visibility.Visible;
-                }
+                case "USER_ADMIN":
+                    // Solo usuarios y apelaciones
+                    btnUsuarios.Visibility = Visibility.Visible;
+                    break;
+
+                case "SUPPORT_ADMIN":
+                    // Solo soporte técnico
+                    btnSoporte.Visibility = Visibility.Visible;
+                    break;
+
+                default:
+                    MessageBox.Show("Tu rol de administrador no tiene permisos asignados.");
+                    break;
             }
         }
 
-        // 3. BOTONES DE ACCIÓN (CON CUSTOM MESSAGE BOX)
+        // --- NAVEGACIÓN ---
 
-        // --- APLICAR SANCIÓN ---
-        private void BtnAplicarSancion_Click(object sender, RoutedEventArgs e)
+        private void BtnJuegos_Click(object sender, RoutedEventArgs e)
         {
-            if (dgUsuarios.SelectedItem is Usuario u)
-            {
-                if (u.Id == _idAdmin)
-                {
-                    new CustomMessageBox("ERROR", "No puedes sancionarte a ti mismo.", Brushes.Crimson, false).ShowDialog();
-                    return;
-                }
-
-                int grado = cmbGravedad.SelectedIndex + 1;
-                DatabaseHelper.AplicarSancion(u.Id, grado, _idAdmin);
-                Cargar(txtBusqueda.Text);
-            }
+            new AdminJuegosWindow().ShowDialog();
         }
 
-        // --- ELIMINAR USUARIO (ROJO) ---
-        private void BtnEliminarUser_Click(object sender, RoutedEventArgs e)
+        private void BtnUsuarios_Click(object sender, RoutedEventArgs e)
         {
-            if (dgUsuarios.SelectedItem is Usuario u)
-            {
-                if (u.Id == _idAdmin)
-                {
-                    new CustomMessageBox("ERROR", "No puedes eliminarte a ti mismo.", Brushes.Crimson, false).ShowDialog();
-                    return;
-                }
-
-                // Usamos CustomMessageBox en modo CONFIRMACIÓN (Rojo)
-                var ventana = new CustomMessageBox("ELIMINAR USUARIO",
-                                                   $"¿Estás seguro de eliminar permanentemente a {u.Username}?",
-                                                   Brushes.Crimson,
-                                                   true);
-
-                if (ventana.ShowDialog() == true)
-                {
-                    DatabaseHelper.EliminarUsuarioTotal(u.Id, _idAdmin);
-                    Cargar(txtBusqueda.Text);
-                }
-            }
+            // Pasamos el ID del admin para los logs
+            new AdminUsuariosWindow(_adminUser.Id).ShowDialog();
         }
 
-        // --- LEVANTAR CASTIGO (VERDE) ---
-        private void BtnLevantarCastigo_Click(object sender, RoutedEventArgs e)
+        private void BtnSoporte_Click(object sender, RoutedEventArgs e)
         {
-            if (dgUsuarios.SelectedItem is Usuario u)
-            {
-                DatabaseHelper.LevantarCastigo(u.Id, _idAdmin);
-                Cargar(txtBusqueda.Text);
-                new CustomMessageBox("INDULTO", $"Se ha levantado el castigo a {u.Username}.", Brushes.LimeGreen, false).ShowDialog();
-            }
+            // Pasamos el ID del admin para los logs
+            new AdminSoporteWindow(_adminUser.Id).ShowDialog();
         }
 
-        // --- CAMBIAR CONTRASEÑA (CYAN) ---
-        private void BtnCambiarPass_Click(object sender, RoutedEventArgs e)
+        private void BtnReportes_Click(object sender, RoutedEventArgs e)
         {
-            if (dgUsuarios.SelectedItem is Usuario u)
-            {
-                if (!string.IsNullOrWhiteSpace(txtNuevaPass.Password))
-                {
-                    DatabaseHelper.AdminCambiarPass(u.Id, txtNuevaPass.Password, _idAdmin);
-                    u.Password = txtNuevaPass.Password;
-                    dgUsuarios.Items.Refresh();
-
-                    // Mensaje informativo (false al final para modo info)
-                    new CustomMessageBox("CONTRASEÑA", "Contraseña actualizada correctamente.", Brushes.Cyan, false).ShowDialog();
-
-                    txtNuevaPass.Password = "";
-                }
-                else
-                {
-                    new CustomMessageBox("AVISO", "Escribe una contraseña primero.", Brushes.Orange, false).ShowDialog();
-                }
-            }
+            // Mostramos el reporte general
+            new ReporteWindow().ShowDialog(); // Si tienes una ventana de reportes
+            // O si usas MessageBox simple:
+            // MessageBox.Show(DatabaseHelper.ObtenerReporteLogs());
         }
 
-        // --- GUARDAR CAMBIOS (VERDE) ---
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        private void BtnCerrar_Click(object sender, RoutedEventArgs e) => this.Close();
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (_usuarios != null)
-            {
-                foreach (var u in _usuarios)
-                {
-                    DatabaseHelper.ActualizarUsuario(u.Id, u.Email, u.Rol);
-                }
-                new CustomMessageBox("GUARDADO", "Base de datos actualizada correctamente.", Brushes.LimeGreen, false).ShowDialog();
-            }
-        }
-
-        // 4. BOTONES DE MENÚ Y OTROS
-
-        private void BtnRefrescar_Click(object sender, RoutedEventArgs e) => Cargar(txtBusqueda.Text);
-
-        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e) => Cargar(txtBusqueda.Text);
-
-        private void BtnCrearUser_Click(object sender, RoutedEventArgs e)
-        {
-            AdminCreateUserWindow createUserWindow = new AdminCreateUserWindow(_idAdmin);
-            if (createUserWindow.ShowDialog() == true) Cargar();
-        }
-
-        private void BtnApelaciones_Click(object sender, RoutedEventArgs e) => new ApelacionesWindow().ShowDialog();
-
-        private void BtnReporte_Click(object sender, RoutedEventArgs e)
-        {
-            // Abre tu ventana de reporte PRO
-            ReporteWindow ventanaReporte = new ReporteWindow();
-            ventanaReporte.ShowDialog();
+            if (e.ChangedButton == MouseButton.Left) this.DragMove();
         }
     }
 }

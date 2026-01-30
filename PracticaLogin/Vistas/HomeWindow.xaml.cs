@@ -1,7 +1,12 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq; // Necesario para filtros
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace PracticaLogin
 {
@@ -9,146 +14,255 @@ namespace PracticaLogin
     {
         private Usuario _usuarioActual;
 
+        // _todosLosJuegosActuales: Guarda la lista completa de la sección actual (sin filtrar)
+        private List<Juego> _todosLosJuegosActuales;
+
+        // _juegosBanner: Lista específica para el banner
+        private List<Juego> _juegosBanner;
+
+        private DispatcherTimer _bannerTimer;
+        private int _bannerIndex = 0;
+
         public HomeWindow(Usuario usuario)
         {
             InitializeComponent();
             _usuarioActual = usuario;
 
-            if (lblNombreUsuario != null)
-            {
-                lblNombreUsuario.Text = _usuarioActual.Username.ToUpper();
-            }
+            if (lblNombreUsuario != null) lblNombreUsuario.Text = _usuarioActual.Username.ToUpper();
 
-            // Lógica de Admin
+            // Verificación de Roles para mostrar botón ADMIN
             if (this.FindName("btnAdminPanel") is Button btnAdmin)
             {
-                if (_usuarioActual.Rol == "ADMIN")
-                    btnAdmin.Visibility = Visibility.Visible;
-                else
-                    btnAdmin.Visibility = Visibility.Collapsed;
+                bool esPersonal = _usuarioActual.Rol == "SUPERADMIN" ||
+                                  _usuarioActual.Rol == "GAME_ADMIN" ||
+                                  _usuarioActual.Rol == "SUPPORT_ADMIN" ||
+                                  _usuarioActual.Rol == "USER_ADMIN";
+
+                btnAdmin.Visibility = esPersonal ? Visibility.Visible : Visibility.Collapsed;
             }
 
             this.WindowState = WindowState.Maximized;
-    btnMaximizar.Content = "❐";
+            if (btnMaximizar != null) btnMaximizar.Content = "❐";
+
+            ConfigurarBanner();
         }
 
-        private void BtnAdminPanel_Click(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            AdminWindow admin = new AdminWindow(_usuarioActual.Id);
-            admin.ShowDialog();
+            BtnTienda_Click(null, null);
         }
 
-        // --- MOVIMIENTO DE VENTANA (CORREGIDO) ---
-        private void TopBar_MouseDown(object sender, MouseButtonEventArgs e)
+        // ================================================================
+        // BÚSQUEDA Y FILTROS (NUEVO)
+        // ================================================================
+
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            AplicarFiltros();
+        }
+
+        private void CmbFiltro_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AplicarFiltros();
+        }
+
+        private void AplicarFiltros()
+        {
+            if (_todosLosJuegosActuales == null) return;
+
+            // 1. Empezamos con todos los juegos de la sección
+            var resultado = _todosLosJuegosActuales.AsEnumerable();
+
+            // 2. Filtro por Texto (Nombre)
+            string busqueda = txtBusqueda.Text.Trim().ToLower();
+            if (!string.IsNullOrEmpty(busqueda))
             {
-                // Solo permitimos arrastrar si NO está maximizada
-                if (this.WindowState == WindowState.Normal)
+                resultado = resultado.Where(j => j.Titulo.ToLower().Contains(busqueda));
+            }
+
+            // 3. Ordenación
+            if (cmbFiltro.SelectedIndex == 1) // Nombre A-Z
+            {
+                resultado = resultado.OrderBy(j => j.Titulo);
+            }
+            else if (cmbFiltro.SelectedIndex == 2) // Precio Menor a Mayor
+            {
+                resultado = resultado.OrderBy(j => j.Precio);
+            }
+            else if (cmbFiltro.SelectedIndex == 3) // Precio Mayor a Menor
+            {
+                resultado = resultado.OrderByDescending(j => j.Precio);
+            }
+
+            // 4. Actualizar la vista
+            listaJuegos.ItemsSource = resultado.ToList();
+        }
+
+        // ================================================================
+        // NAVEGACIÓN (Actualiza la lista base y limpia filtros)
+        // ================================================================
+
+        private void CargarSeccion(List<Juego> juegos, string titulo)
+        {
+            _todosLosJuegosActuales = juegos;
+            if (lblTituloSeccion != null) lblTituloSeccion.Text = titulo;
+
+            // Limpiamos búsqueda al cambiar de sección (opcional)
+            txtBusqueda.Text = "";
+            cmbFiltro.SelectedIndex = 0;
+
+            AplicarFiltros();
+        }
+
+        private void BtnTienda_Click(object sender, RoutedEventArgs e)
+        {
+            CargarSeccion(DatabaseHelper.ObtenerJuegos(), "MERCADO GLOBAL");
+        }
+
+        private void BtnDestacados_Click(object sender, RoutedEventArgs e)
+        {
+            CargarSeccion(DatabaseHelper.ObtenerDestacados(), "JUEGOS DESTACADOS");
+        }
+
+        private void BtnMisJuegos_Click(object sender, RoutedEventArgs e)
+        {
+            CargarSeccion(DatabaseHelper.ObtenerMisJuegos(_usuarioActual.Id), "MI BIBLIOTECA");
+        }
+
+        // ================================================================
+        // BANNER ROTATIVO
+        // ================================================================
+        private void ConfigurarBanner()
+        {
+            _juegosBanner = DatabaseHelper.ObtenerJuegos();
+
+            if (_juegosBanner.Count > 0)
+            {
+                _bannerTimer = new DispatcherTimer();
+                _bannerTimer.Interval = TimeSpan.FromSeconds(4);
+                _bannerTimer.Tick += BannerTimer_Tick;
+                _bannerTimer.Start();
+                ActualizarBanner();
+            }
+            else
+            {
+                if (lblBannerTitulo != null) lblBannerTitulo.Text = "NO HAY JUEGOS";
+            }
+        }
+
+        private void BannerTimer_Tick(object sender, EventArgs e)
+        {
+            _bannerIndex++;
+            if (_bannerIndex >= _juegosBanner.Count) _bannerIndex = 0;
+            ActualizarBanner();
+        }
+
+        private void ActualizarBanner()
+        {
+            if (_juegosBanner == null || _juegosBanner.Count == 0) return;
+
+            var juego = _juegosBanner[_bannerIndex];
+
+            try
+            {
+                if (lblBannerTitulo != null)
+                    lblBannerTitulo.Text = juego.Titulo.ToUpper();
+
+                if (imgBanner != null)
                 {
-                    this.DragMove();
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(juego.ImagenFondoAbsoluta, UriKind.RelativeOrAbsolute); // Usa la horizontal
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+
+                    imgBanner.Source = bitmap;
+                }
+            }
+            catch { }
+        }
+
+        // ================================================================
+        // ACCIONES
+        // ================================================================
+        private void BtnVerCarrito_Click(object sender, RoutedEventArgs e)
+        {
+            CarritoWindow ventanaCarrito = new CarritoWindow();
+            ventanaCarrito.ShowDialog();
+
+            if (ventanaCarrito.CompraRealizada)
+            {
+                foreach (var j in CarritoService.Cesta)
+                {
+                    if (!DatabaseHelper.UsuarioTieneJuego(_usuarioActual.Id, j.Id))
+                        DatabaseHelper.ComprarJuego(_usuarioActual.Id, j.Id);
+                }
+                CarritoService.Vaciar();
+                new CustomMessageBox("COMPRA COMPLETADA", "Juegos añadidos a tu biblioteca.", Brushes.LimeGreen, false).ShowDialog();
+                BtnMisJuegos_Click(null, null);
+            }
+        }
+
+        private void JuegoDinamico_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border card && card.Tag != null)
+            {
+                int idJuego = (int)card.Tag;
+                // Importante: Buscar en la lista completa original
+                Juego juego = _todosLosJuegosActuales.Find(j => j.Id == idJuego);
+
+                if (juego != null)
+                {
+                    GameDetailWindow detalle = new GameDetailWindow(juego, _usuarioActual);
+                    detalle.ShowDialog();
+                    if (lblTituloSeccion.Text == "MI BIBLIOTECA") BtnMisJuegos_Click(null, null);
                 }
             }
         }
 
+        private void BtnAdminPanel_Click(object sender, RoutedEventArgs e)
+        {
+            // PASAR "_usuarioActual" (el objeto entero), NO "_usuarioActual.Id"
+            AdminWindow admin = new AdminWindow(_usuarioActual);
+            admin.ShowDialog();
+
+            // Recargar tienda al salir por si hubo cambios
+            BtnTienda_Click(null, null);
+        }
+
+        // ================================================================
+        // UTILS
+        // ================================================================
+        private void TopBar_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left && this.WindowState == WindowState.Normal) this.DragMove(); }
         private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
-
         private void BtnCerrarApp_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
+        private void BtnMaximizar_Click(object sender, RoutedEventArgs e) { this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized; }
 
-        // --- LÓGICA DE MAXIMIZAR (CORREGIDO) ---
-        private void BtnMaximizar_Click(object sender, RoutedEventArgs e)
+        private void UserProfile_Click(object sender, MouseButtonEventArgs e) { if (UserMenuPopup != null) UserMenuPopup.IsOpen = true; }
+        private void BtnLogout_Click(object sender, RoutedEventArgs e) { new MainWindow().Show(); this.Close(); }
+
+        private void BtnComunidad_Click(object sender, RoutedEventArgs e)
         {
-            if (this.WindowState == WindowState.Maximized)
-            {
-                this.WindowState = WindowState.Normal;
-                btnMaximizar.Content = "◻"; // Icono cuadrado (Maximizar)
-            }
-            else
-            {
-                this.WindowState = WindowState.Maximized;
-                btnMaximizar.Content = "❐"; // Icono doble (Restaurar)
-            }
+            // Abrimos la ventana de comunidad
+            new ComunidadWindow().ShowDialog();
         }
-
-        private void UserProfile_Click(object sender, MouseButtonEventArgs e)
+        private void BtnSoporte_Click(object sender, RoutedEventArgs e)
         {
-            if (UserMenuPopup != null) UserMenuPopup.IsOpen = true;
+            // Ahora pasamos "_usuarioActual" para saber quién envía la queja
+            new SoporteWindow(_usuarioActual).ShowDialog();
         }
+        private void BtnSuscripciones_Click(object sender, RoutedEventArgs e) { new SubscriptionsWindow(_usuarioActual).ShowDialog(); }
+        private void BtnConfiguracion_Click(object sender, RoutedEventArgs e) { new ConfigWindow(_usuarioActual).ShowDialog(); }
+        private void AbrirSeccion(string t) { new SubVentana(t).ShowDialog(); }
 
-        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) { CambiarEstado("#23A559"); }
-        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) { CambiarEstado("#F0B232"); }
-        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) { CambiarEstado("#747F8D"); }
-
-        private void CambiarEstado(string hexColor)
-        {
-            if (MainStatusIndicator != null && UserMenuPopup != null)
-            {
-                var converter = new BrushConverter();
-                MainStatusIndicator.Background = (Brush)converter.ConvertFromString(hexColor);
-                UserMenuPopup.IsOpen = false;
-            }
-        }
-
-        private void BtnConfiguracion_Click(object sender, RoutedEventArgs e)
-        {
-            if (UserMenuPopup != null) UserMenuPopup.IsOpen = false;
-            this.Opacity = 0.5;
-            ConfigWindow config = new ConfigWindow(_usuarioActual);
-            config.ShowDialog();
-            this.Opacity = 1;
-        }
-
-        private void BtnSuscripciones_Click(object sender, RoutedEventArgs e)
-        {
-            this.Opacity = 0.5;
-            SubscriptionsWindow subWindow = new SubscriptionsWindow(_usuarioActual);
-            subWindow.ShowDialog();
-            this.Opacity = 1;
-        }
-
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)
-        {
-            MainWindow login = new MainWindow();
-            login.Show();
-            this.Close();
-        }
-
-        private void BtnTienda_Click(object sender, RoutedEventArgs e) { AbrirSeccion("TIENDA AKAY"); }
-        private void BtnComunidad_Click(object sender, RoutedEventArgs e) { AbrirSeccion("COMUNIDAD GLOBAL"); }
-        private void BtnSoporte_Click(object sender, RoutedEventArgs e) { AbrirSeccion("SOPORTE TÉCNICO"); }
-        private void BtnDestacados_Click(object sender, RoutedEventArgs e) { AbrirSeccion("DESTACADOS"); }
-        private void BtnMisJuegos_Click(object sender, RoutedEventArgs e) { AbrirSeccion("BIBLIOTECA"); }
-
-        private void AbrirSeccion(string titulo)
-        {
-            this.Opacity = 0.5;
-            SubVentana ventana = new SubVentana(titulo);
-            ventana.ShowDialog();
-            this.Opacity = 1;
-        }
-
-        // Juegos (Clicks)
-        private void Juego1_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("PHANTOM", "/Assets/juego1.jpg", "Acción", "GRATIS", "1P", "Hackea la realidad."); }
-        private void Juego2_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("DRAGON", "/Assets/juego2.jpg", "RPG", "49€", "MMO", "Caza dragones."); }
-        private void Juego3_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("VOID", "/Assets/juego3.jpg", "Terror", "19€", "Coop", "Terror espacial."); }
-        private void Juego4_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("SILENT ECHO", "/Assets/juego4.jpg", "Puzzle", "14€", "1P", "Misterio."); }
-        private void Juego5_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("STAR JUMPER", "/Assets/juego7.jpg", "Plataformas", "29€", "1P", "Aventura."); }
-        private void Juego6_Click(object sender, MouseButtonEventArgs e) { AbrirDetalleJuego("IRON EMPEROR", "/Assets/juego6.jpg", "Estrategia", "39€", "Online", "Guerra total."); }
-
-        private void AbrirDetalleJuego(string t, string img, string gen, string prec, string jug, string desc)
-        {
-            this.Opacity = 0.5;
-            GameDetailWindow detalle = new GameDetailWindow(t, img, gen, prec, jug, desc);
-            detalle.ShowDialog();
-            this.Opacity = 1;
-        }
+        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#23A559");
+        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#F0B232");
+        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#747F8D");
+        private void CambiarColorEstado(string c) { if (MainStatusIndicator != null) MainStatusIndicator.Background = (Brush)new BrushConverter().ConvertFromString(c); UserMenuPopup.IsOpen = false; }
 
         private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            if (e.VerticalChange != 0 && this.FindName("BackgroundTranslateTransform") is TranslateTransform trans)
-            {
-                trans.Y = -(e.VerticalOffset * 0.1);
-            }
+            if (this.FindName("BackgroundTranslateTransform") is TranslateTransform trans) trans.Y = -(e.VerticalOffset * 0.1);
         }
     }
 }

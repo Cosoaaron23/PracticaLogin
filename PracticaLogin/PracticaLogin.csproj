@@ -40,15 +40,33 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Assets\background.jpg" />
-    <Resource Include="Assets\logo.ico" />
-    <Resource Include="Assets\juego1.jpg" />
-    <Resource Include="Assets\juego2.jpg" />
-    <Resource Include="Assets\juego3.jpg" />
-    <Resource Include="Assets\juego4.jpg" />
-    <Resource Include="Assets\juego6.jpg" />
-    <Resource Include="Assets\juego7.jpg" />
-    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\background.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego1.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego2.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego3.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego4.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego6.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\juego7.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
