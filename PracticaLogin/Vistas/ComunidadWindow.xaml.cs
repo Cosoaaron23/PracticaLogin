@@ -6,9 +6,13 @@ namespace PracticaLogin
 {
     public partial class ComunidadWindow : Window
     {
-        public ComunidadWindow()
+        private Usuario _usuarioActual;
+
+        // CORRECCIÓN: El constructor ahora acepta un Usuario
+        public ComunidadWindow(Usuario usuario)
         {
             InitializeComponent();
+            _usuarioActual = usuario;
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => this.Close();
@@ -17,9 +21,8 @@ namespace PracticaLogin
 
         private void BtnSocial_Click(object sender, RoutedEventArgs e)
         {
-            // Simulación de abrir navegador
-            MessageBox.Show("Abriendo enlace externo en el navegador...", "Redes Sociales");
-            // Process.Start(new ProcessStartInfo("https://discord.com") { UseShellExecute = true }); // Código real
+            MessageBox.Show($"Usuario {_usuarioActual.Username} abriendo redes sociales...", "Redes Sociales");
+            // Process.Start(new ProcessStartInfo("https://discord.com") { UseShellExecute = true });
         }
     }
 }

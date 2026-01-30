@@ -1,25 +1,20 @@
 ﻿<Window x:Class="PracticaLogin.HomeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="AKAY Launcher - Home" 
-        Height="750" Width="1200"
-        WindowStartupLocation="CenterScreen"
-        WindowStyle="None"
-        ResizeMode="CanResize"
-        WindowState="Maximized"
-        AllowsTransparency="True"
-        Background="Transparent"
-        Icon="/Assets/logo.ico"
+        xmlns:local="clr-namespace:PracticaLogin"
+        Title="AKAY Launcher" Height="750" Width="1200"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
+        WindowState="Maximized" AllowsTransparency="True" Background="Transparent"
         Loaded="Window_Loaded">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <local:PrecioConverter x:Key="PrecioConv"/>
 
         <Style x:Key="CyberComboItem" TargetType="ComboBoxItem">
             <Setter Property="Background" Value="#181818"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="14"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -45,13 +40,7 @@
 
         <ControlTemplate x:Key="CyberComboBoxTemplate" TargetType="ComboBox">
             <Grid>
-                <ToggleButton Name="ToggleButton" 
-                      BorderBrush="{TemplateBinding BorderBrush}" 
-                      Background="{TemplateBinding Background}" 
-                      Foreground="{TemplateBinding Foreground}"
-                      Focusable="false" 
-                      ClickMode="Press"
-                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                <ToggleButton Name="ToggleButton" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}" Focusable="false" ClickMode="Press" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                     <ToggleButton.Template>
                         <ControlTemplate TargetType="ToggleButton">
                             <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
@@ -60,23 +49,16 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="30" />
                                     </Grid.ColumnDefinitions>
-                                    <Path Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                  Fill="#00E5FF" Data="M 0 0 L 4 4 L 8 0 Z" />
+                                    <Path Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#00E5FF" Data="M 0 0 L 4 4 L 8 0 Z" />
                                 </Grid>
                             </Border>
                         </ControlTemplate>
                     </ToggleButton.Template>
                 </ToggleButton>
-
-                <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  
-                          Content="{TemplateBinding SelectionBoxItem}"
-                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                          Margin="15,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
-
+                <ContentPresenter Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="15,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
                 <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
                     <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                        <Border x:Name="DropDownBorder" Background="#181818" BorderThickness="1" BorderBrush="#333" CornerRadius="5">
+                        <Border x:Name="DropDownBorder" Background="#181818" BorderThickness="1" BorderBrush="#00E5FF" CornerRadius="5">
                             <Border.Effect>
                                 <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.5"/>
                             </Border.Effect>
@@ -100,15 +82,10 @@
         </Style>
 
         <Style x:Key="CloseBtn" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#888"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bdr" Background="{TemplateBinding Background}">
+                        <Border x:Name="bdr" Background="Transparent">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -120,19 +97,16 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <Style x:Key="WindowControlBtn" TargetType="Button">
-            <Setter Property="Width" Value="50"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#888"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bdr" Background="{TemplateBinding Background}">
+                        <Border x:Name="bdr" Background="Transparent">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -144,6 +118,9 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <Style x:Key="TopMenuButton" TargetType="Button">
@@ -153,7 +130,6 @@
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Margin" Value="0,0,25,0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -175,65 +151,6 @@
             </Setter>
         </Style>
 
-        <Style x:Key="SideMenuButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#999"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="55"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="12" Margin="12,2">
-                            <Grid>
-                                <Border x:Name="indicator" Width="4" HorizontalAlignment="Left" Background="Transparent" CornerRadius="2" Height="20" Margin="8,0,0,0"/>
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bdr" Property="Background" Value="#1AFFFFFF"/>
-                                <Setter TargetName="indicator" Property="Background" Value="#00E5FF"/>
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Effect">
-                                    <Setter.Value>
-                                        <DropShadowEffect Color="#00E5FF" BlurRadius="8" ShadowDepth="0" Opacity="0.3"/>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PopupMenuItem" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#B9BBBE"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bdr" Background="{TemplateBinding Background}">
-                            <ContentPresenter Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bdr" Property="Background" Value="#5865F2"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style x:Key="GameCard" TargetType="Border">
             <Setter Property="Width" Value="180"/>
             <Setter Property="Height" Value="260"/>
@@ -242,7 +159,12 @@
             <Setter Property="Margin" Value="0,0,20,20"/>
             <Setter Property="BorderBrush" Value="#333"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="3" Opacity="0.5"/>
@@ -260,21 +182,73 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="HamburgerBtn" TargetType="Button">
+        <Style x:Key="SideMenuButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="Height" Value="55"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="12" Margin="12,2">
+                            <Grid>
+                                <Border x:Name="indicator" Width="4" HorizontalAlignment="Left" Background="Transparent" CornerRadius="2" Height="20" Margin="8,0,0,0"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="#1AFFFFFF"/>
+                                <Setter TargetName="indicator" Property="Background" Value="#00E5FF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="AmigoTemplate">
+            <Border Background="Transparent" Padding="10,5" Cursor="Hand" MouseLeftButtonDown="ItemAmigo_Click" Tag="{Binding Id}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Width="12" Height="12" CornerRadius="6" Background="{Binding ColorEstado}" BorderBrush="#181818" BorderThickness="2" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,-2,2" Panel.ZIndex="2"/>
+                    <Border Width="40" Height="40" CornerRadius="20" Background="#333">
+                        <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Foreground="White"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <TextBlock Text="{Binding Username}" Foreground="White" FontWeight="Bold" FontSize="14"/>
+                        <TextBlock Text="{Binding Estado}" Foreground="#888" FontSize="11"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="MensajeTemplate">
+            <StackPanel HorizontalAlignment="{Binding Alineacion}" Margin="5,2" MaxWidth="220">
+                <Border Background="{Binding ColorFondo}" CornerRadius="8" Padding="10,8">
+                    <TextBlock Text="{Binding Texto}" Foreground="{Binding ColorTexto}" TextWrapping="Wrap" FontSize="13"/>
+                </Border>
+                <TextBlock Text="{Binding Fecha, StringFormat={}{0:HH:mm}}" Foreground="#555" FontSize="9" HorizontalAlignment="{Binding Alineacion}" Margin="2,1"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="PopupMenuItem" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="32"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="35"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bdr" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter VerticalAlignment="Center" Margin="10,0"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#00E5FF"/>
+                                <Setter TargetName="bdr" Property="Background" Value="#5865F2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -286,14 +260,14 @@
     <Border Background="#121212" BorderBrush="#FF4444" BorderThickness="1">
         <Grid>
             <Grid>
-                <Image x:Name="BackgroundImage" Source="/Assets/background.jpg" Stretch="UniformToFill" Opacity="0.5" RenderOptions.BitmapScalingMode="HighQuality">
+                <Image x:Name="BackgroundImage" Source="/Assets/background.jpg" Stretch="UniformToFill" Opacity="0.3">
                     <Image.RenderTransform>
                         <TranslateTransform x:Name="BackgroundTranslateTransform"/>
                     </Image.RenderTransform>
                 </Image>
                 <Rectangle>
                     <Rectangle.Fill>
-                        <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
+                        <RadialGradientBrush Center="0.5,0.5" RadiusX="0.8" RadiusY="0.8">
                             <GradientStop Color="#99000000" Offset="0"/>
                             <GradientStop Color="#FF050505" Offset="1"/>
                         </RadialGradientBrush>
@@ -310,57 +284,52 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#E6050505" MouseDown="TopBar_MouseDown">
+                <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#E6050505" MouseDown="TopBar_MouseDown">
                     <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
-                            <Image Source="/Assets/logo.ico" Height="16" Margin="0,0,10,0"/>
-                            <TextBlock Text="AKAY LAUNCHER" Foreground="#888" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Text="AKAY LAUNCHER" Foreground="#888" FontSize="11" FontWeight="Bold"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="—" Click="BtnMinimizar_Click" Style="{StaticResource WindowControlBtn}"/>
-                            <Button x:Name="btnMaximizar" Content="◻" Click="BtnMaximizar_Click" Style="{StaticResource WindowControlBtn}"/>
+                            <Button Content="◻" Click="BtnMaximizar_Click" Style="{StaticResource WindowControlBtn}"/>
                             <Button Content="✕" Click="BtnCerrarApp_Click" Style="{StaticResource CloseBtn}" Width="45"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#333333" BorderThickness="0,1,0,1" Background="#CC050505">
+                <Border Grid.Row="1" Grid.ColumnSpan="3" BorderBrush="#333" BorderThickness="0,1,0,1" Background="#CC050505">
                     <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0">
-                            <Button x:Name="btnMenu" Content="☰" Click="BtnMenu_Click" Style="{StaticResource HamburgerBtn}" Margin="0,0,20,0"/>
-                            <Image Source="/Assets/logo.png" Height="40" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <Button x:Name="btnMenu" Content="☰" Click="BtnMenu_Click" Foreground="White" Background="Transparent" FontSize="20" BorderThickness="0" Margin="0,0,20,0"/>
+                            <Image Source="/Assets/logo.png" Height="40"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Button Content="SUSCRIPCIONES" Click="BtnSuscripciones_Click" Style="{StaticResource TopMenuButton}"/>
                             <Button Content="COMUNIDAD" Click="BtnComunidad_Click" Style="{StaticResource TopMenuButton}"/>
                             <Button Content="SOPORTE" Click="BtnSoporte_Click" Style="{StaticResource TopMenuButton}"/>
                         </StackPanel>
-
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,30,0">
-                            <Button Content="🛒 CARRITO" Click="BtnVerCarrito_Click" Style="{StaticResource TopMenuButton}" Foreground="#00FF00" Margin="0,0,15,0"/>
-                            <Button x:Name="btnAdminPanel" Content="⚙ ADMIN" Click="BtnAdminPanel_Click" Style="{StaticResource TopMenuButton}" Visibility="Collapsed" Foreground="#FF4444" Margin="0,0,15,0"/>
-
+                            <Button Content="🛒" Click="BtnVerCarrito_Click" Style="{StaticResource TopMenuButton}" Foreground="#00FF00" FontSize="18"/>
+                            <Button Content="👥" Click="BtnToggleSocial_Click" Style="{StaticResource TopMenuButton}" FontSize="18"/>
+                            <Button x:Name="btnAdminPanel" Content="⚙ ADMIN" Click="BtnAdminPanel_Click" Style="{StaticResource TopMenuButton}" Foreground="#FF4444" Visibility="Collapsed"/>
                             <Border x:Name="UserProfileBorder" CornerRadius="20" BorderBrush="#00E5FF" BorderThickness="1" Padding="10,5" Background="#44000000" Cursor="Hand" MouseLeftButtonUp="UserProfile_Click">
                                 <StackPanel Orientation="Horizontal">
-                                    <Border x:Name="MainStatusIndicator" Width="12" Height="12" CornerRadius="6" Background="#23A559" Margin="0,0,10,0" BorderBrush="Black" BorderThickness="1"/>
-                                    <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <TextBlock Text="▼" Foreground="#888" FontSize="10" VerticalAlignment="Center"/>
+                                    <Border x:Name="MainStatusIndicator" Width="10" Height="10" CornerRadius="5" Background="#23A559" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="lblNombreUsuario" Text="USUARIO" Foreground="#00E5FF" FontWeight="Bold"/>
                                 </StackPanel>
                             </Border>
-
-                            <Popup x:Name="UserMenuPopup" PlacementTarget="{Binding ElementName=UserProfileBorder}" Placement="Bottom" VerticalOffset="-10" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Slide">
-                                <Border Background="#18191C" CornerRadius="5" BorderBrush="#202225" BorderThickness="1" Width="220">
-                                    <StackPanel Margin="0,5">
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoOnline_Click" Content="🟢 Online"/>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoAusente_Click" Content="🟡 Ausente"/>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnEstadoInvisible_Click" Content="⚪ Invisible"/>
-                                        <Separator Background="#333" Margin="10,5"/>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnConfiguracion_Click" Content="⚙ Ajustes"/>
-                                        <Separator Background="#333" Margin="10,5"/>
-                                        <Button Style="{StaticResource PopupMenuItem}" Click="BtnLogout_Click" Content="🚪 Cerrar Sesión" Foreground="#F04747"/>
+                            <Popup x:Name="UserMenuPopup" PlacementTarget="{Binding ElementName=UserProfileBorder}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                                <Border Background="#18191C" CornerRadius="5" BorderBrush="#333" BorderThickness="1" Width="150" Padding="5">
+                                    <StackPanel>
+                                        <Button Content="Online" Click="BtnEstadoOnline_Click" Style="{StaticResource PopupMenuItem}"/>
+                                        <Button Content="Ausente" Click="BtnEstadoAusente_Click" Style="{StaticResource PopupMenuItem}"/>
+                                        <Button Content="Invisible" Click="BtnEstadoInvisible_Click" Style="{StaticResource PopupMenuItem}"/>
+                                        <Separator Background="#333" Margin="0,5"/>
+                                        <Button Content="Ajustes" Click="BtnConfiguracion_Click" Style="{StaticResource PopupMenuItem}"/>
+                                        <Button Content="Cerrar Sesión" Click="BtnLogout_Click" Style="{StaticResource PopupMenuItem}" Foreground="#F04747"/>
                                     </StackPanel>
                                 </Border>
                             </Popup>
@@ -368,72 +337,53 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="2" Grid.Column="0" x:Name="SideMenuBorder" Width="250"
-        Margin="20,20,0,20" CornerRadius="18" BorderBrush="#333" BorderThickness="1" ClipToBounds="True">
-
+                <Border Grid.Row="2" Grid.Column="0" x:Name="SideMenuBorder" Width="250" Margin="20,20,0,20" CornerRadius="18" BorderBrush="#333" BorderThickness="1">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#E6050505" Offset="0"/>
+                            <GradientStop Color="#E6050505"/>
                             <GradientStop Color="#E6121212" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
-
                     <Grid>
-                        <TextBlock x:Name="lblTituloSeccion" Text="NAVEGACIÓN" Foreground="#444" FontSize="10" 
-                   FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Top" 
-                   Margin="0,30,0,0"/>
-
+                        <TextBlock x:Name="lblTituloSeccion" Text="NAVEGACIÓN" Foreground="#444" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,30,0,0"/>
                         <StackPanel VerticalAlignment="Center">
                             <Button Click="BtnDestacados_Click" Style="{StaticResource SideMenuButton}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔥" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="DESTACADOS" VerticalAlignment="Center"/>
+                                    <TextBlock Text="🔥" Margin="0,0,10,0"/>
+                                    <TextBlock Text="DESTACADOS"/>
                                 </StackPanel>
                             </Button>
-
                             <Button Click="BtnTienda_Click" Style="{StaticResource SideMenuButton}" Margin="0,10">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🛍️" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="TIENDA" VerticalAlignment="Center"/>
+                                    <TextBlock Text="🛍️" Margin="0,0,10,0"/>
+                                    <TextBlock Text="TIENDA"/>
                                 </StackPanel>
                             </Button>
-
                             <Button Click="BtnMisJuegos_Click" Style="{StaticResource SideMenuButton}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🎮" Margin="0,0,12,0" FontSize="16"/>
-                                    <TextBlock Text="BIBLIOTECA" VerticalAlignment="Center"/>
+                                    <TextBlock Text="🎮" Margin="0,0,10,0"/>
+                                    <TextBlock Text="BIBLIOTECA"/>
                                 </StackPanel>
                             </Button>
-                        </StackPanel>
-
-                        <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,25" Opacity="0.4">
-                            <TextBlock Text="AKAY LAUNCHER" Foreground="#AAA" FontWeight="Bold" HorizontalAlignment="Center" FontSize="9"/>
-                            <TextBlock Text="v2.0.1 Stable" Foreground="#888" HorizontalAlignment="Center" FontSize="8" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto" Margin="10,0,0,0" ScrollChanged="MainScrollViewer_ScrollChanged">
+                <ScrollViewer Grid.Row="2" Grid.Column="1" x:Name="MainScrollViewer" Margin="10,0" VerticalScrollBarVisibility="Auto" ScrollChanged="MainScrollViewer_ScrollChanged">
                     <StackPanel Margin="0,20,20,30">
 
                         <Grid Margin="0,0,0,25">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="180"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Background="#222" CornerRadius="8" Height="45" Margin="0,0,20,0" BorderBrush="#333" BorderThickness="1">
-                                <Grid>
-                                    <TextBlock Text="🔍 Buscar juego..." Foreground="#666" VerticalAlignment="Center" Margin="15,0,0,0" IsHitTestVisible="False" FontSize="14"/>
-                                    <TextBox x:Name="txtBusqueda" Background="Transparent" Foreground="White" BorderThickness="0" 
-                                             VerticalContentAlignment="Center" Padding="10,0" FontSize="14"
-                                             TextChanged="TxtBusqueda_TextChanged"/>
-                                </Grid>
+                            <Border Grid.Column="0" Background="#222" CornerRadius="8" Height="45" Margin="0,0,10,0" BorderBrush="#333" BorderThickness="1">
+                                <TextBox x:Name="txtBusqueda" Background="Transparent" Foreground="White" BorderThickness="0" VerticalContentAlignment="Center" Padding="10,0" FontSize="14" TextChanged="TxtBusqueda_TextChanged"/>
                             </Border>
 
-                            <ComboBox x:Name="cmbFiltro" Grid.Column="1" Width="180" 
-          Style="{StaticResource CyberComboBox}"
-          SelectionChanged="CmbFiltro_SelectionChanged">
+                            <ComboBox x:Name="cmbFiltro" Grid.Column="1" Margin="0,0,10,0" Style="{StaticResource CyberComboBox}" SelectionChanged="CmbFiltro_SelectionChanged">
                                 <ComboBoxItem Content="Todos" IsSelected="True"/>
                                 <ComboBoxItem Content="Acción"/>
                                 <ComboBoxItem Content="Aventura"/>
@@ -441,22 +391,22 @@
                                 <ComboBoxItem Content="Deportes"/>
                                 <ComboBoxItem Content="Estrategia"/>
                             </ComboBox>
+
+                            <ComboBox x:Name="cmbOrden" Grid.Column="2" Style="{StaticResource CyberComboBox}" SelectionChanged="CmbOrden_SelectionChanged">
+                                <ComboBoxItem Content="A - Z" IsSelected="True"/>
+                                <ComboBoxItem Content="Z - A"/>
+                                <ComboBoxItem Content="Precio: Bajo a Alto"/>
+                                <ComboBoxItem Content="Precio: Alto a Bajo"/>
+                                <ComboBoxItem Content="Tamaño: Pequeño a Grande"/>
+                            </ComboBox>
                         </Grid>
 
-                        <Border Height="300" CornerRadius="12" Margin="0,0,0,20" ClipToBounds="True" Background="#050505" BorderBrush="#333" BorderThickness="1">
+                        <Border Height="300" CornerRadius="12" Margin="0,0,0,20" ClipToBounds="True" Background="Black">
                             <Grid>
                                 <Image x:Name="imgBanner" Stretch="Fill"/>
-                                <Border VerticalAlignment="Bottom" Height="150">
-                                    <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="Transparent" Offset="0"/>
-                                            <GradientStop Color="#E6000000" Offset="1"/>
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                </Border>
                                 <StackPanel VerticalAlignment="Bottom" Margin="30">
-                                    <Border Background="#B71C1C" HorizontalAlignment="Left" CornerRadius="4" Padding="10,4" Margin="0,0,0,10">
-                                        <TextBlock Text="🔥 JUEGO DESTACADO" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                                    <Border Background="#B71C1C" HorizontalAlignment="Left" CornerRadius="4" Padding="10,4">
+                                        <TextBlock Text="DESTACADO" Foreground="White" FontWeight="Bold"/>
                                     </Border>
                                     <TextBlock x:Name="lblBannerTitulo" Text="CARGANDO..." Foreground="White" FontWeight="Bold" FontSize="40">
                                         <TextBlock.Effect>
@@ -478,34 +428,16 @@
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="*"/>
-                                                <RowDefinition Height="65"/>
+                                                <RowDefinition Height="60"/>
                                             </Grid.RowDefinitions>
-
                                             <Image Source="{Binding ImagenAbsoluta}" Stretch="UniformToFill"/>
-
-                                            <Border Background="#FF4081" VerticalAlignment="Top" HorizontalAlignment="Right" 
-                    Width="50" Height="20" CornerRadius="0,0,0,8" 
-                    Visibility="{Binding EsOnline, Converter={StaticResource BoolToVis}}">
-                                                <TextBlock Text="ONLINE" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9"/>
-                                            </Border>
-
-                                            <Border Grid.Row="1" Background="#E6050505" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="12,5">
+                                            <Border Grid.Row="1" Background="#E6050505" Padding="10">
                                                 <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,5,0">
-                                                        <TextBlock Text="{Binding Titulo}" Foreground="White" FontWeight="Bold" FontSize="13" 
-                                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" 
-                                   ToolTip="{Binding Titulo}"/>
-                                                        <TextBlock Text="{Binding Genero}" Foreground="#888" FontSize="11" Margin="0,2,0,0"/>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Titulo}" Foreground="White" FontWeight="Bold"/>
+                                                        <TextBlock Text="{Binding Genero}" Foreground="#888" FontSize="10"/>
                                                     </StackPanel>
-
-                                                    <TextBlock Grid.Column="1" Text="{Binding Precio, StringFormat={}{0:C}}" 
-                               HorizontalAlignment="Right" VerticalAlignment="Center" 
-                               Foreground="#00FF00" FontWeight="Bold" FontSize="15"/>
+                                                    <TextBlock Text="{Binding Precio, Converter={StaticResource PrecioConv}}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#00FF00" FontWeight="Bold"/>
                                                 </Grid>
                                             </Border>
                                         </Grid>
@@ -515,8 +447,55 @@
                         </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
+
+                <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="2" x:Name="SocialPanel" Width="300" Background="#181818" BorderBrush="#333" BorderThickness="1,0,0,0" Visibility="Collapsed">
+                    <Grid>
+                        <Grid x:Name="VistaListaAmigos" Visibility="Visible">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="50"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border BorderBrush="#333" BorderThickness="0,0,0,1" Padding="15,0">
+                                <Grid>
+                                    <TextBlock Text="SOCIAL" Foreground="#CCC" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="➕" Click="BtnAddFriend_Click" Style="{StaticResource WindowControlBtn}" Width="35"/>
+                                        <Button Content="⚙" Click="BtnSocialSettings_Click" Style="{StaticResource WindowControlBtn}" Width="35"/>
+                                        <Button Content="✕" Click="BtnCerrarPanelSocial_Click" Style="{StaticResource WindowControlBtn}" Width="35" Foreground="#FF4444"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <ScrollViewer Grid.Row="1">
+                                <ItemsControl x:Name="listaAmigosUI" ItemTemplate="{StaticResource AmigoTemplate}"/>
+                            </ScrollViewer>
+                        </Grid>
+                        <Grid x:Name="VistaChatAbierto" Visibility="Collapsed">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="50"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="60"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                                <Button Content="🡠" Click="BtnCerrarChat_Click" Style="{StaticResource WindowControlBtn}"/>
+                                <TextBlock x:Name="lblNombreAmigoChat" Text="AMIGO" Foreground="White" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0"/>
+                            </StackPanel>
+                            <ScrollViewer x:Name="scrollMensajes" Grid.Row="1">
+                                <ItemsControl x:Name="listaMensajesUI" ItemTemplate="{StaticResource MensajeTemplate}"/>
+                            </ScrollViewer>
+                            <Grid Grid.Row="2" Background="#222" Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="txtMensaje" Foreground="White" Background="Transparent" BorderThickness="0" KeyDown="TxtMensaje_KeyDown"/>
+                                <Button Grid.Column="1" Content="➤" Click="BtnEnviarMensaje_Click" Foreground="#00E5FF" Background="Transparent" BorderThickness="0"/>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="DimmerOverlay" Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="3" Background="#AA000000" Visibility="Collapsed"/>
             </Grid>
-            <Border x:Name="DimmerOverlay" Background="#AA000000" Visibility="Collapsed" IsHitTestVisible="False"/>
         </Grid>
     </Border>
 </Window>

@@ -1,307 +1,171 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq; // Necesario para filtros
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Windows.Media.Animation;
 
 namespace PracticaLogin
 {
     public partial class HomeWindow : Window
     {
         private Usuario _usuarioActual;
-
-        // _todosLosJuegosActuales: Guarda la lista completa de la sección actual (sin filtrar)
-        private List<Juego> _todosLosJuegosActuales;
-
-        // _juegosBanner: Lista específica para el banner
-        private List<Juego> _juegosBanner;
-
-        private DispatcherTimer _bannerTimer;
-        private int _bannerIndex = 0;
+        private List<Juego> _todosLosJuegosActuales = new List<Juego>();
+        private List<Juego> _juegosBanner = new List<Juego>();
+        private DispatcherTimer _timerChat;
+        private DispatcherTimer _timerBanner;
+        private Amigo _amigoChatActual = null;
+        private bool _panelSocialAbierto = false;
+        private int _indiceBanner = 0;
 
         public HomeWindow(Usuario usuario)
         {
             InitializeComponent();
             _usuarioActual = usuario;
 
-            if (lblNombreUsuario != null) lblNombreUsuario.Text = _usuarioActual.Username.ToUpper();
-
-            // Verificación de Roles para mostrar botón ADMIN
-            if (this.FindName("btnAdminPanel") is Button btnAdmin)
-            {
-                bool esPersonal = _usuarioActual.Rol == "SUPERADMIN" ||
-                                  _usuarioActual.Rol == "GAME_ADMIN" ||
-                                  _usuarioActual.Rol == "SUPPORT_ADMIN" ||
-                                  _usuarioActual.Rol == "USER_ADMIN";
-
-                btnAdmin.Visibility = esPersonal ? Visibility.Visible : Visibility.Collapsed;
-            }
-
-            this.WindowState = WindowState.Maximized;
-            if (btnMaximizar != null) btnMaximizar.Content = "❐";
-
-            ConfigurarBanner();
+            // Timer Chat
+            _timerChat = new DispatcherTimer(); _timerChat.Interval = TimeSpan.FromSeconds(3); _timerChat.Tick += TimerChat_Tick; _timerChat.Start();
+            // Timer Banner
+            _timerBanner = new DispatcherTimer(); _timerBanner.Interval = TimeSpan.FromSeconds(5); _timerBanner.Tick += TimerBanner_Tick; _timerBanner.Start();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            BtnTienda_Click(null, null);
+            CargarDatosUsuario();
+            ConfigurarPermisos();
+            _juegosBanner = DatabaseHelper.ObtenerDestacados();
+            if (_juegosBanner.Count > 0) ActualizarBannerUI(_juegosBanner[0]);
+            CargarJuegosIniciales();
         }
 
-        // ================================================================
-        // BÚSQUEDA Y FILTROS (NUEVO)
-        // ================================================================
-
-        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        // --- LOGICA BANNER ---
+        private void TimerBanner_Tick(object sender, EventArgs e)
         {
-            AplicarFiltros();
-        }
-
-        private void CmbFiltro_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            AplicarFiltros();
-        }
-
-        private void AplicarFiltros()
-        {
-            if (_todosLosJuegosActuales == null) return;
-
-            // 1. Empezamos con todos los juegos de la sección
-            var resultado = _todosLosJuegosActuales.AsEnumerable();
-
-            // 2. Filtro por Texto (Nombre)
-            string busqueda = txtBusqueda.Text.Trim().ToLower();
-            if (!string.IsNullOrEmpty(busqueda))
+            if (_juegosBanner != null && _juegosBanner.Count > 1)
             {
-                resultado = resultado.Where(j => j.Titulo.ToLower().Contains(busqueda));
-            }
-
-            // 3. Ordenación
-            if (cmbFiltro.SelectedIndex == 1) // Nombre A-Z
-            {
-                resultado = resultado.OrderBy(j => j.Titulo);
-            }
-            else if (cmbFiltro.SelectedIndex == 2) // Precio Menor a Mayor
-            {
-                resultado = resultado.OrderBy(j => j.Precio);
-            }
-            else if (cmbFiltro.SelectedIndex == 3) // Precio Mayor a Menor
-            {
-                resultado = resultado.OrderByDescending(j => j.Precio);
-            }
-
-            // 4. Actualizar la vista
-            listaJuegos.ItemsSource = resultado.ToList();
-        }
-
-        // ================================================================
-        // NAVEGACIÓN (Actualiza la lista base y limpia filtros)
-        // ================================================================
-
-        private void CargarSeccion(List<Juego> juegos, string titulo)
-        {
-            _todosLosJuegosActuales = juegos;
-            if (lblTituloSeccion != null) lblTituloSeccion.Text = titulo;
-
-            // Limpiamos búsqueda al cambiar de sección (opcional)
-            txtBusqueda.Text = "";
-            cmbFiltro.SelectedIndex = 0;
-
-            AplicarFiltros();
-        }
-
-        private void BtnTienda_Click(object sender, RoutedEventArgs e)
-        {
-            CargarSeccion(DatabaseHelper.ObtenerJuegos(), "MERCADO GLOBAL");
-        }
-
-        private void BtnDestacados_Click(object sender, RoutedEventArgs e)
-        {
-            CargarSeccion(DatabaseHelper.ObtenerDestacados(), "JUEGOS DESTACADOS");
-        }
-
-        private void BtnMisJuegos_Click(object sender, RoutedEventArgs e)
-        {
-            CargarSeccion(DatabaseHelper.ObtenerMisJuegos(_usuarioActual.Id), "MI BIBLIOTECA");
-        }
-
-        // ================================================================
-        // BANNER ROTATIVO
-        // ================================================================
-        private void ConfigurarBanner()
-        {
-            _juegosBanner = DatabaseHelper.ObtenerJuegos();
-
-            if (_juegosBanner.Count > 0)
-            {
-                _bannerTimer = new DispatcherTimer();
-                _bannerTimer.Interval = TimeSpan.FromSeconds(4);
-                _bannerTimer.Tick += BannerTimer_Tick;
-                _bannerTimer.Start();
-                ActualizarBanner();
-            }
-            else
-            {
-                if (lblBannerTitulo != null) lblBannerTitulo.Text = "NO HAY JUEGOS";
+                _indiceBanner++; if (_indiceBanner >= _juegosBanner.Count) _indiceBanner = 0;
+                ActualizarBannerUI(_juegosBanner[_indiceBanner]);
             }
         }
-
-        private void BannerTimer_Tick(object sender, EventArgs e)
+        private void ActualizarBannerUI(Juego juego)
         {
-            _bannerIndex++;
-            if (_bannerIndex >= _juegosBanner.Count) _bannerIndex = 0;
-            ActualizarBanner();
-        }
-
-        private void ActualizarBanner()
-        {
-            if (_juegosBanner == null || _juegosBanner.Count == 0) return;
-
-            var juego = _juegosBanner[_bannerIndex];
-
+            if (juego == null) return;
             try
             {
-                if (lblBannerTitulo != null)
-                    lblBannerTitulo.Text = juego.Titulo.ToUpper();
-
-                if (imgBanner != null)
-                {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(juego.ImagenFondoAbsoluta, UriKind.RelativeOrAbsolute); // Usa la horizontal
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-
-                    imgBanner.Source = bitmap;
-                }
+                if (lblBannerTitulo != null) lblBannerTitulo.Text = juego.Titulo.ToUpper();
+                if (imgBanner != null) imgBanner.Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(juego.ImagenFondoAbsoluta, UriKind.RelativeOrAbsolute));
             }
             catch { }
         }
 
-        // ================================================================
-        // ACCIONES
-        // ================================================================
-        private void BtnVerCarrito_Click(object sender, RoutedEventArgs e)
+        // --- NAVEGACIÓN MODAL ---
+        private void AbrirVentana(Window ventanaNueva)
         {
-            CarritoWindow ventanaCarrito = new CarritoWindow();
-            ventanaCarrito.ShowDialog();
+            if (DimmerOverlay != null) DimmerOverlay.Visibility = Visibility.Visible;
+            ventanaNueva.Owner = this; ventanaNueva.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            ventanaNueva.ShowDialog();
+            if (DimmerOverlay != null) DimmerOverlay.Visibility = Visibility.Collapsed;
+        }
 
-            if (ventanaCarrito.CompraRealizada)
-            {
-                foreach (var j in CarritoService.Cesta)
-                {
-                    if (!DatabaseHelper.UsuarioTieneJuego(_usuarioActual.Id, j.Id))
-                        DatabaseHelper.ComprarJuego(_usuarioActual.Id, j.Id);
-                }
-                CarritoService.Vaciar();
-                new CustomMessageBox("COMPRA COMPLETADA", "Juegos añadidos a tu biblioteca.", Brushes.LimeGreen, false).ShowDialog();
-                BtnMisJuegos_Click(null, null);
-            }
+        private void BtnSuscripciones_Click(object sender, RoutedEventArgs e) => AbrirVentana(new SubscriptionsWindow(_usuarioActual));
+        private void BtnComunidad_Click(object sender, RoutedEventArgs e) => AbrirVentana(new ComunidadWindow(_usuarioActual));
+        private void BtnVerCarrito_Click(object sender, RoutedEventArgs e) => AbrirVentana(new CarritoWindow(_usuarioActual));
+        private void BtnAdminPanel_Click(object sender, RoutedEventArgs e) => AbrirVentana(new AdminWindow(_usuarioActual));
+        private void BtnConfiguracion_Click(object sender, RoutedEventArgs e) => AbrirVentana(new ConfigWindow(_usuarioActual));
+        private void BtnLogout_Click(object sender, RoutedEventArgs e) { new MainWindow().Show(); this.Close(); }
+
+        // CORREGIDO: Abre SoporteWindow con control de errores
+        private void BtnSoporte_Click(object sender, RoutedEventArgs e)
+        {
+            try { AbrirVentana(new SoporteWindow(_usuarioActual)); } catch { MessageBox.Show("Soporte no disponible.", "Aviso"); }
         }
 
         private void JuegoDinamico_Click(object sender, MouseButtonEventArgs e)
         {
-            if (sender is Border card && card.Tag != null)
+            if (sender is Border b && b.Tag is int idJuego)
             {
-                int idJuego = (int)card.Tag;
-                // Importante: Buscar en la lista completa original
-                Juego juego = _todosLosJuegosActuales.Find(j => j.Id == idJuego);
-
-                if (juego != null)
-                {
-                    GameDetailWindow detalle = new GameDetailWindow(juego, _usuarioActual);
-                    detalle.ShowDialog();
-                    if (lblTituloSeccion.Text == "MI BIBLIOTECA") BtnMisJuegos_Click(null, null);
-                }
+                var juego = _todosLosJuegosActuales.FirstOrDefault(j => j.Id == idJuego);
+                if (juego != null) { try { AbrirVentana(new GameDetailWindow(juego, _usuarioActual)); } catch { } }
             }
         }
 
-        private void BtnAdminPanel_Click(object sender, RoutedEventArgs e)
+        // --- CARGA Y FILTROS ---
+        private void CargarJuegosIniciales() => BtnDestacados_Click(null, null);
+        private void CargarSeccion(List<Juego> juegos, string titulo)
         {
-            // PASAR "_usuarioActual" (el objeto entero), NO "_usuarioActual.Id"
-            AdminWindow admin = new AdminWindow(_usuarioActual);
-            admin.ShowDialog();
+            _todosLosJuegosActuales = juegos ?? new List<Juego>();
+            if (lblTituloSeccion != null) lblTituloSeccion.Text = titulo;
+            AplicarFiltros();
+        }
+        private void BtnDestacados_Click(object sender, RoutedEventArgs e) => CargarSeccion(DatabaseHelper.ObtenerDestacados(), "MERCADO");
+        private void BtnTienda_Click(object sender, RoutedEventArgs e) => CargarSeccion(DatabaseHelper.ObtenerJuegos(), "TIENDA");
+        private void BtnMisJuegos_Click(object sender, RoutedEventArgs e) => CargarSeccion(DatabaseHelper.ObtenerBiblioteca(_usuarioActual.Id), "MI BIBLIOTECA");
 
-            // Recargar tienda al salir por si hubo cambios
-            BtnTienda_Click(null, null);
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e) => AplicarFiltros();
+        private void CmbFiltro_SelectionChanged(object sender, SelectionChangedEventArgs e) => AplicarFiltros();
+        // Evento nuevo para ordenación
+        private void CmbOrden_SelectionChanged(object sender, SelectionChangedEventArgs e) => AplicarFiltros();
+
+        private void AplicarFiltros()
+        {
+            if (listaJuegos == null || _todosLosJuegosActuales == null) return;
+
+            string texto = (txtBusqueda != null) ? txtBusqueda.Text.ToLower() : "";
+            string genero = (cmbFiltro != null && cmbFiltro.SelectedItem is ComboBoxItem itemG) ? itemG.Content.ToString() : "Todos";
+            string orden = (cmbOrden != null && cmbOrden.SelectedItem is ComboBoxItem itemO) ? itemO.Content.ToString() : "A - Z";
+
+            var query = _todosLosJuegosActuales.Where(j => j.Titulo.ToLower().Contains(texto));
+
+            if (genero != "Todos" && !string.IsNullOrEmpty(genero)) query = query.Where(j => j.Genero.Equals(genero, StringComparison.OrdinalIgnoreCase));
+
+            // Lógica de Ordenación
+            switch (orden)
+            {
+                case "A - Z": query = query.OrderBy(j => j.Titulo); break;
+                case "Z - A": query = query.OrderByDescending(j => j.Titulo); break;
+                case "Precio: Bajo a Alto": query = query.OrderBy(j => j.Precio); break;
+                case "Precio: Alto a Bajo": query = query.OrderByDescending(j => j.Precio); break;
+                case "Tamaño: Pequeño a Grande": query = query.OrderBy(j => j.TamanoGb); break;
+                default: query = query.OrderBy(j => j.Titulo); break;
+            }
+
+            listaJuegos.ItemsSource = query.ToList();
         }
 
-        // ================================================================
-        // UTILS
-        // ================================================================
-        private void TopBar_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left && this.WindowState == WindowState.Normal) this.DragMove(); }
-        private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
+        // --- UI ---
+        private void CargarDatosUsuario() { if (_usuarioActual != null && lblNombreUsuario != null) lblNombreUsuario.Text = _usuarioActual.Username.ToUpper(); }
+        private void ConfigurarPermisos() { if (btnAdminPanel != null) btnAdminPanel.Visibility = (_usuarioActual.Rol.Contains("ADMIN")) ? Visibility.Visible : Visibility.Collapsed; }
+        private void UserProfile_Click(object sender, MouseButtonEventArgs e) { UserMenuPopup.IsOpen = !UserMenuPopup.IsOpen; }
+        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) { CambiarEstadoColor("#23A559"); }
+        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) { CambiarEstadoColor("#FAA61A"); }
+        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) { CambiarEstadoColor("#747F8D"); }
+        private void CambiarEstadoColor(string c) { if (MainStatusIndicator != null) MainStatusIndicator.Background = (SolidColorBrush)new BrushConverter().ConvertFrom(c); UserMenuPopup.IsOpen = false; }
+        private void TopBar_MouseDown(object sender, MouseButtonEventArgs e) { if (e.ChangedButton == MouseButton.Left) this.DragMove(); }
+        private void BtnMinimizar_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+        private void BtnMaximizar_Click(object sender, RoutedEventArgs e) => WindowState = (WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized;
         private void BtnCerrarApp_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
-        private void BtnMaximizar_Click(object sender, RoutedEventArgs e) { this.WindowState = (this.WindowState == WindowState.Maximized) ? WindowState.Normal : WindowState.Maximized; }
+        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) { if (BackgroundTranslateTransform != null) BackgroundTranslateTransform.Y = -MainScrollViewer.VerticalOffset * 0.2; }
 
-        private void UserProfile_Click(object sender, MouseButtonEventArgs e) { if (UserMenuPopup != null) UserMenuPopup.IsOpen = true; }
-        private void BtnLogout_Click(object sender, RoutedEventArgs e) { new MainWindow().Show(); this.Close(); }
-
-        private void BtnComunidad_Click(object sender, RoutedEventArgs e)
-        {
-            // Abrimos la ventana de comunidad
-            new ComunidadWindow().ShowDialog();
-        }
-        private void BtnSoporte_Click(object sender, RoutedEventArgs e)
-        {
-            // Ahora pasamos "_usuarioActual" para saber quién envía la queja
-            new SoporteWindow(_usuarioActual).ShowDialog();
-        }
-
-        // Añade esta variable a nivel de clase
-        private bool _isMenuOpen = true;
-
-        // Añade este método para el botón hamburguesa
+        // CORREGIDO: MENÚ LATERAL SE OCULTA TOTALMENTE
         private void BtnMenu_Click(object sender, RoutedEventArgs e)
         {
-            // Configuramos la animación
-            DoubleAnimation animation = new DoubleAnimation();
-            animation.Duration = TimeSpan.FromSeconds(0.3); // Duración: 0.3 segundos
-
-            // Efecto de suavizado (rebote suave al final)
-            animation.EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut };
-
-            if (_isMenuOpen)
-            {
-                // Si está abierto -> lo cerramos a ancho 0
-                animation.To = 0;
-                _isMenuOpen = false;
-
-                // Opcional: Quitar margen para que no ocupe espacio extra
-                SideMenuBorder.Margin = new Thickness(0, 20, 0, 20);
-            }
-            else
-            {
-                // Si está cerrado -> lo abrimos a ancho 250
-                animation.To = 250;
-                _isMenuOpen = true;
-
-                // Restauramos el margen original
-                SideMenuBorder.Margin = new Thickness(20, 20, 0, 20);
-            }
-
-            // Iniciamos la animación sobre la propiedad Width
-            SideMenuBorder.BeginAnimation(Border.WidthProperty, animation);
+            if (SideMenuBorder != null) SideMenuBorder.Visibility = (SideMenuBorder.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        private void BtnSuscripciones_Click(object sender, RoutedEventArgs e) { new SubscriptionsWindow(_usuarioActual).ShowDialog(); }
-        private void BtnConfiguracion_Click(object sender, RoutedEventArgs e) { new ConfigWindow(_usuarioActual).ShowDialog(); }
-        private void AbrirSeccion(string t) { new SubVentana(t).ShowDialog(); }
-
-        private void BtnEstadoOnline_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#23A559");
-        private void BtnEstadoAusente_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#F0B232");
-        private void BtnEstadoInvisible_Click(object sender, RoutedEventArgs e) => CambiarColorEstado("#747F8D");
-        private void CambiarColorEstado(string c) { if (MainStatusIndicator != null) MainStatusIndicator.Background = (Brush)new BrushConverter().ConvertFromString(c); UserMenuPopup.IsOpen = false; }
-
-        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-            if (this.FindName("BackgroundTranslateTransform") is TranslateTransform trans) trans.Y = -(e.VerticalOffset * 0.1);
-        }
+        // --- SOCIAL ---
+        private void BtnToggleSocial_Click(object sender, RoutedEventArgs e) { _panelSocialAbierto = !_panelSocialAbierto; if (SocialPanel != null) SocialPanel.Visibility = _panelSocialAbierto ? Visibility.Visible : Visibility.Collapsed; if (_panelSocialAbierto) RefrescarDatosSocial(); }
+        private void BtnCerrarPanelSocial_Click(object sender, RoutedEventArgs e) { _panelSocialAbierto = false; SocialPanel.Visibility = Visibility.Collapsed; }
+        private void TimerChat_Tick(object sender, EventArgs e) { if (_panelSocialAbierto) RefrescarDatosSocial(); }
+        private void RefrescarDatosSocial() { if (_amigoChatActual == null) { if (listaAmigosUI != null) listaAmigosUI.ItemsSource = ChatHelper.ObtenerAmigos(_usuarioActual.Id); } else { if (listaMensajesUI != null) listaMensajesUI.ItemsSource = ChatHelper.ObtenerConversacion(_usuarioActual.Id, _amigoChatActual.Id); } }
+        private void ItemAmigo_Click(object sender, MouseButtonEventArgs e) { if (sender is Border b && b.Tag is int id) { var lista = listaAmigosUI.ItemsSource as List<Amigo>; _amigoChatActual = lista?.Find(a => a.Id == id); if (_amigoChatActual != null) { lblNombreAmigoChat.Text = _amigoChatActual.Username.ToUpper(); VistaListaAmigos.Visibility = Visibility.Collapsed; VistaChatAbierto.Visibility = Visibility.Visible; RefrescarDatosSocial(); } } }
+        private void BtnCerrarChat_Click(object sender, RoutedEventArgs e) { _amigoChatActual = null; VistaChatAbierto.Visibility = Visibility.Collapsed; VistaListaAmigos.Visibility = Visibility.Visible; RefrescarDatosSocial(); }
+        private void BtnEnviarMensaje_Click(object sender, RoutedEventArgs e) => EnviarMensaje();
+        private void TxtMensaje_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) EnviarMensaje(); }
+        private void EnviarMensaje() { if (!string.IsNullOrWhiteSpace(txtMensaje.Text) && _amigoChatActual != null) { ChatHelper.EnviarMensaje(_usuarioActual.Id, _amigoChatActual.Id, txtMensaje.Text); txtMensaje.Text = ""; RefrescarDatosSocial(); if (scrollMensajes != null) scrollMensajes.ScrollToBottom(); } }
+        private void BtnAddFriend_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Añadir amigos próximamente.");
+        private void BtnSocialSettings_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Ajustes de privacidad.");
     }
 }

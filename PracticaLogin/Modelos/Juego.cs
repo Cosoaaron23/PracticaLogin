@@ -13,10 +13,13 @@ namespace PracticaLogin
         public bool EsOnline { get; set; }
         public int NumJugadores { get; set; }
 
+        // Propiedad que faltaba y daba error CS1061
+        public bool EsDestacado { get; set; }
+
         // 1. IMAGEN VERTICAL (PORTADA)
         public string ImagenUrl { get; set; }
 
-        // 2. IMAGEN HORIZONTAL (BANNER) - ¡NUEVO!
+        // 2. IMAGEN HORIZONTAL (BANNER)
         public string ImagenFondoUrl { get; set; }
 
         public string TipoConexion => EsOnline ? "Online" : "Local";

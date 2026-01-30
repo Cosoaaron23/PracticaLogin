@@ -1,103 +1,173 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
+using System.Windows.Threading; // Necesario para el Timer
 
 namespace PracticaLogin
 {
     public partial class GameDetailWindow : Window
     {
+        private Usuario _usuario;
         private Juego _juego;
-        private Usuario _user;
         private DispatcherTimer _timerDescarga;
-        private double _progreso = 0;
+        private int _progresoDescarga = 0;
+
+        // Estados del juego
+        private const int ESTADO_NO_TIENE = 0;
+        private const int ESTADO_COMPRADO = 1;
+        private const int ESTADO_DESCARGADO = 2;
+
+        private int _estadoActual = 0;
 
         public GameDetailWindow(Juego juego, Usuario usuario)
         {
             InitializeComponent();
+            _usuario = usuario;
             _juego = juego;
-            _user = usuario;
 
-            // Datos base
-            lblTitulo.Text = juego.Titulo;
-            lblGenero.Text = juego.Genero;
-            lblGigas.Text = juego.TamanoGb + " GB";
-            txtDescripcion.Text = "Descubre la experiencia definitiva en " + juego.Titulo + ". Optimizado para el Launcher AKAY.";
-
-            try { imgPortada.Source = new BitmapImage(new Uri(juego.ImagenAbsoluta)); } catch { }
-
-            ActualizarEstadoBotones();
+            CargarDatosVisuales();
+            VerificarEstadoJuego();
         }
 
-        private void ActualizarEstadoBotones()
+        private void CargarDatosVisuales()
         {
-            // Pedimos el estado a la base de datos
-            // 0 = No comprado, 1 = Comprado, 2 = Descargado
-            int estado = DatabaseHelper.EstadoPropiedadJuego(_user.Id, _juego.Id);
+            lblTitulo.Text = _juego.Titulo.ToUpper();
+            lblGenero.Text = _juego.Genero.ToUpper();
+            lblEspacio.Text = _juego.TamanoGb + " GB";
+            lblJugadores.Text = _juego.NumJugadores == 1 ? "UN JUGADOR" : "MULTIJUGADOR";
+            lblPrecio.Text = _juego.Precio == 0 ? "GRATIS" : _juego.Precio.ToString("C");
 
-            btnCarrito.Visibility = Visibility.Collapsed;
-            btnInstalar.Visibility = Visibility.Collapsed;
-            btnJugar.Visibility = Visibility.Collapsed;
+            // Imágenes con protección
+            try { imgPortada.Source = new BitmapImage(new Uri(_juego.ImagenAbsoluta, UriKind.RelativeOrAbsolute)); } catch { }
+            try { imgFondo.Source = new BitmapImage(new Uri(_juego.ImagenAbsoluta, UriKind.RelativeOrAbsolute)); } catch { }
 
-            if (estado == 0)
+            if (_juego.EsOnline) tagOnline.Visibility = Visibility.Visible;
+        }
+
+        // --- CEREBRO: Decide qué botón mostrar ---
+        private void VerificarEstadoJuego()
+        {
+            // 1. Preguntamos a la BBDD en qué estado está este juego para este usuario
+            _estadoActual = DatabaseHelper.EstadoPropiedadJuego(_usuario.Id, _juego.Id);
+
+            switch (_estadoActual)
             {
-                btnCarrito.Visibility = Visibility.Visible;
-                if (_juego.Precio == 0) btnCarrito.Content = "⬇ OBTENER GRATIS";
+                case ESTADO_NO_TIENE:
+                    // Si es Gratis, permitimos "Obtener", si no "Añadir al Carrito"
+                    if (_juego.Precio == 0)
+                    {
+                        btnAccion.Content = "AÑADIR A BIBLIOTECA";
+                        btnAccion.Background = System.Windows.Media.Brushes.LimeGreen;
+                    }
+                    else
+                    {
+                        btnAccion.Content = "AÑADIR AL CARRITO";
+                        btnAccion.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#00E5FF");
+                    }
+                    lblPrecio.Visibility = Visibility.Visible;
+                    break;
+
+                case ESTADO_COMPRADO:
+                    btnAccion.Content = "⬇ DESCARGAR";
+                    btnAccion.Background = System.Windows.Media.Brushes.Orange; // Naranja para acción requerida
+                    lblPrecio.Text = "EN PROPIEDAD";
+                    break;
+
+                case ESTADO_DESCARGADO:
+                    btnAccion.Content = "▶ JUGAR AHORA";
+                    btnAccion.Background = System.Windows.Media.Brushes.LimeGreen; // Verde para jugar
+                    lblPrecio.Visibility = Visibility.Collapsed;
+                    break;
             }
-            else if (estado == 1)
+        }
+
+        private void BtnAccion_Click(object sender, RoutedEventArgs e)
+        {
+            Brush colorCian = (Brush)new BrushConverter().ConvertFrom("#00E5FF");
+
+            switch (_estadoActual)
             {
-                btnInstalar.Visibility = Visibility.Visible;
+                case ESTADO_NO_TIENE:
+                    ProcesarCompra();
+                    break;
+
+                case ESTADO_COMPRADO:
+                    // Usamos tu CustomMessageBox para confirmar la descarga
+                    CustomMessageBox msgD = new CustomMessageBox("Descargar", "¿Deseas iniciar la descarga de " + _juego.Titulo + "?", colorCian, true);
+                    if (msgD.ShowDialog() == true)
+                    {
+                        IniciarSimulacionDescarga();
+                    }
+                    break;
+
+                case ESTADO_DESCARGADO:
+                    // Mensaje informativo (esConfirmacion = false para ocultar botón cancelar)
+                    CustomMessageBox msgJ = new CustomMessageBox("Ejecutar", "Iniciando " + _juego.Titulo + "... ¡Disfruta!", colorCian, false);
+                    msgJ.ShowDialog();
+                    break;
+            }
+        }
+
+        private void ProcesarCompra()
+        {
+            Brush colorCian = (Brush)new BrushConverter().ConvertFrom("#00E5FF");
+            if (_juego.Precio == 0)
+            {
+                DatabaseHelper.ComprarJuego(_usuario.Id, _juego.Id);
+                // Nuevo aviso estético para juego gratuito
+                CustomMessageBox msgG = new CustomMessageBox("Éxito", "¡Juego gratuito añadido a tu biblioteca!", colorCian, false);
+                msgG.ShowDialog();
+                VerificarEstadoJuego();
             }
             else
             {
-                btnJugar.Visibility = Visibility.Visible;
+                CarritoService.Agregar(_juego);
+                // NUEVO: Cambio del aviso genérico por el CustomMessageBox
+                CustomMessageBox msgC = new CustomMessageBox("Carrito", "Juego añadido al carrito. Ve al carrito para finalizar la compra.", colorCian, false);
+                msgC.ShowDialog();
+                this.Close();
             }
         }
 
-        // --- LÓGICA DE DESCARGA SIMULADA ---
-        private void BtnInstalar_Click(object sender, RoutedEventArgs e)
+        // --- SIMULACIÓN DE DESCARGA ---
+        private void IniciarSimulacionDescarga()
         {
-            btnInstalar.Visibility = Visibility.Collapsed;
-            panelDescarga.Visibility = Visibility.Visible;
+            btnAccion.IsEnabled = false; // Bloquear botón
+            btnAccion.Content = "PREPARANDO...";
+            pnlDescarga.Visibility = Visibility.Visible; // Mostrar barra
 
+            _progresoDescarga = 0;
             _timerDescarga = new DispatcherTimer();
-            _timerDescarga.Interval = TimeSpan.FromMilliseconds(50); // Velocidad del tick
-            _timerDescarga.Tick += Timer_Tick;
+            _timerDescarga.Interval = TimeSpan.FromMilliseconds(50); // Velocidad de descarga
+            _timerDescarga.Tick += TimerDescarga_Tick;
             _timerDescarga.Start();
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void TimerDescarga_Tick(object sender, EventArgs e)
         {
-            _progreso += 1.2; // Cuánto aumenta la barra en cada paso
-            pbDescarga.Value = _progreso;
-            lblPorcentaje.Text = $"Descargando... {(int)_progreso}%";
+            _progresoDescarga++;
+            progressBar.Value = _progresoDescarga;
+            lblEstadoDescarga.Text = $"Descargando... {_progresoDescarga}%";
 
-            // Simulación de velocidad variable
-            lblVelocidad.Text = new Random().Next(30, 85) + " MB/s";
-
-            if (_progreso >= 100)
+            if (_progresoDescarga >= 100)
             {
                 _timerDescarga.Stop();
-                // Guardamos en la BD que ya está descargado
-                DatabaseHelper.MarcarComoDescargado(_user.Id, _juego.Id);
-
-                panelDescarga.Visibility = Visibility.Collapsed;
-                new CustomMessageBox("COMPLETADO", "El juego se ha instalado correctamente.", System.Windows.Media.Brushes.LimeGreen, false).ShowDialog();
-
-                ActualizarEstadoBotones();
+                FinalizarDescarga();
             }
         }
 
-        private void BtnCarrito_Click(object sender, RoutedEventArgs e)
+        private void FinalizarDescarga()
         {
-            CarritoService.Agregar(_juego);
-            MessageBox.Show("Añadido al carrito. Finaliza la compra en la Home.");
-            this.Close();
-        }
+            DatabaseHelper.MarcarComoDescargado(_usuario.Id, _juego.Id);
+            pnlDescarga.Visibility = Visibility.Collapsed;
+            btnAccion.IsEnabled = true;
 
-        private void BtnJugar_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show($"Abriendo {_juego.Titulo}...", "AKAY Launcher");
+            Brush colorVerde = Brushes.LimeGreen; // Podemos usar verde para el éxito
+            CustomMessageBox msgF = new CustomMessageBox("Listo", "Descarga e instalación completadas.", colorVerde, false);
+            msgF.ShowDialog();
+
+            VerificarEstadoJuego();
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => this.Close();
