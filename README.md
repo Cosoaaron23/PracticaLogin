@@ -286,10 +286,10 @@ INSERT INTO videojuegos (titulo, tematica, coste, espacio_gb, online, jugadores,
  'https://wallpapers.com/images/featured/elden-ring-6r85th0gnhifsqd0.jpg');
 
 SET SQL_SAFE_UPDATES = 1;
-
+```
 </details>
 
-```
+
 ### 3. Conexión
 Abre el archivo DatabaseHelper.cs y asegúrate de que la cadena de conexión coincida con tu MySQL local:
 
