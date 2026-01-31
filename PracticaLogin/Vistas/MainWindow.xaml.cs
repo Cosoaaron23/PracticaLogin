@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -27,18 +28,21 @@ namespace PracticaLogin
         {
             pnlLogin.Visibility = Visibility.Collapsed;
             pnlRegistro.Visibility = Visibility.Visible;
-            // Limpiamos mensajes al cambiar
-            lblMensajeLogin.Text = "";
-            lblMensajeRegistro.Text = "";
-            btnApelar.Visibility = Visibility.Collapsed;
+            LimpiarMensajes();
         }
 
         private void IrALogin_Click(object sender, RoutedEventArgs e)
         {
             pnlRegistro.Visibility = Visibility.Collapsed;
             pnlLogin.Visibility = Visibility.Visible;
+            LimpiarMensajes();
+        }
+
+        private void LimpiarMensajes()
+        {
             lblMensajeLogin.Text = "";
             lblMensajeRegistro.Text = "";
+            if (btnApelar != null) btnApelar.Visibility = Visibility.Collapsed;
         }
 
         // --- LÓGICA DE LOGIN ---
@@ -47,8 +51,8 @@ namespace PracticaLogin
             string user = txtUsuarioLogin.Text;
             string pass = txtPasswordLogin.Password;
 
-            // 1. Resetear interfaz (esconder botón apelar)
-            btnApelar.Visibility = Visibility.Collapsed;
+            // 1. Resetear interfaz
+            if (btnApelar != null) btnApelar.Visibility = Visibility.Collapsed;
             lblMensajeLogin.Text = "";
 
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
@@ -59,7 +63,6 @@ namespace PracticaLogin
 
             // 2. Validar Usuario
             string respuestaError;
-            // Usamos el Helper inteligente que detecta si el baneo caducó
             Usuario usuarioLogueado = DatabaseHelper.ValidateUser(user, pass, out respuestaError);
 
             if (usuarioLogueado != null)
@@ -71,36 +74,54 @@ namespace PracticaLogin
             }
             else
             {
-                // FALLO -> Mostramos el error
-                lblMensajeLogin.Text = respuestaError.ToUpper();
+                // FALLO -> Analizamos el error
 
-                // 3. DETECTAR SI ES BANEO PARA MOSTRAR BOTÓN APELAR
-                // Buscamos palabras clave que pusimos en el Helper ("BANEADO", "SUSPENDIDA", "BLOQUEADO")
-                if (respuestaError.Contains("BANEADO") || respuestaError.Contains("SUSPENDIDA") || respuestaError.Contains("BLOQUEADO"))
+                // CASO 1: USUARIO BANEADO
+                if (respuestaError == "Bloqueado")
                 {
-                    // Mostramos la alerta visual bonita
-                    var alerta = new CustomMessageBox("ACCESO DENEGADO", respuestaError, Brushes.Red);
-                    alerta.ShowDialog();
+                    lblMensajeLogin.Text = "CUENTA SUSPENDIDA";
 
-                    // ¡AQUÍ APARECE EL BOTÓN!
-                    btnApelar.Visibility = Visibility.Visible;
+                    // Mostramos la alerta bonita preguntando si quiere apelar
+                    // true = muestra botón cancelar (es una pregunta)
+                    var alerta = new CustomMessageBox("ACCESO DENEGADO",
+                        "Tu cuenta ha sido bloqueada por infringir las normas.\n\n¿Deseas enviar una apelación?",
+                        Brushes.Red, true);
+
+                    // Si le da a "CONFIRMAR" (SÍ), abrimos la ventana de apelación
+                    if (alerta.ShowDialog() == true)
+                    {
+                        EnviarApelacionWindow ventana = new EnviarApelacionWindow(user);
+                        ventana.ShowDialog();
+                    }
+                    else
+                    {
+                        // Si dice que NO, dejamos el botón visible por si se arrepiente
+                        if (btnApelar != null) btnApelar.Visibility = Visibility.Visible;
+                    }
                 }
+                // CASO 2: CONTRASEÑA INCORRECTA U OTRO ERROR
                 else
                 {
-                    // Si es contraseña incorrecta, solo borramos el campo pass
-                    txtPasswordLogin.Password = "";
+                    lblMensajeLogin.Text = "Usuario o contraseña incorrectos.";
+
+                    // Alerta informativa (false = solo botón aceptar)
+                    var alerta = new CustomMessageBox("ERROR DE LOGIN", "Las credenciales no coinciden.", Brushes.Orange, false);
+                    alerta.ShowDialog();
+
+                    txtPasswordLogin.Password = ""; // Limpiar pass
                 }
             }
         }
 
-        // --- BOTÓN DE APELAR ---
+        // --- BOTÓN DE APELAR (Por si cancelaron el popup y quieren darle después) ---
         private void BtnApelar_Click(object sender, RoutedEventArgs e)
         {
-            // Pasamos el nombre de usuario escrito para que no tenga que volver a ponerlo
             string usuarioBaneado = txtUsuarioLogin.Text;
-
-            EnviarApelacionWindow ventana = new EnviarApelacionWindow(usuarioBaneado);
-            ventana.ShowDialog();
+            if (!string.IsNullOrEmpty(usuarioBaneado))
+            {
+                EnviarApelacionWindow ventana = new EnviarApelacionWindow(usuarioBaneado);
+                ventana.ShowDialog();
+            }
         }
 
         // --- LÓGICA DE REGISTRO ---
@@ -124,13 +145,15 @@ namespace PracticaLogin
 
             if (exito)
             {
-                var msg = new CustomMessageBox("BIENVENIDO", "¡Cuenta creada! Inicia sesión.", Brushes.Cyan);
+                // Mensaje de éxito (false = solo botón aceptar)
+                var msg = new CustomMessageBox("BIENVENIDO", "¡Cuenta creada correctamente! Ahora puedes iniciar sesión.", Brushes.Cyan, false);
                 msg.ShowDialog();
+
                 IrALogin_Click(sender, e);
             }
             else
             {
-                lblMensajeRegistro.Text = "El usuario ya existe.";
+                lblMensajeRegistro.Text = "El nombre de usuario ya existe.";
             }
         }
     }

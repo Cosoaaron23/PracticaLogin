@@ -1,32 +1,44 @@
-﻿using System.Windows;
-using System.Windows.Input;
+﻿using System;
+using System.Windows;
+using System.Windows.Media;
 
 namespace PracticaLogin
 {
     public partial class EnviarApelacionWindow : Window
     {
-        public EnviarApelacionWindow(string usernameCargado)
+        private string _username;
+
+        public EnviarApelacionWindow(string username)
         {
             InitializeComponent();
-            txtUsuario.Text = usernameCargado; // Ya viene relleno con el usuario que intentó entrar
+            _username = username;
+            txtUsuario.Text = _username; // Mostramos el usuario que intenta apelar
         }
-
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (e.LeftButton == MouseButtonState.Pressed) this.DragMove(); }
-        private void BtnCerrar_Click(object sender, RoutedEventArgs e) => this.Close();
 
         private void BtnEnviar_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtMensaje.Text))
             {
-                MessageBox.Show("Escribe un mensaje explicando por qué deberían desbanearte.");
+                MessageBox.Show("Por favor, escribe un motivo.", "Error");
                 return;
             }
 
-            // Enviamos a la BD
-            DatabaseHelper.EnviarApelacion(txtUsuario.Text, txtMensaje.Text);
+            try
+            {
+                // Llamamos al método que ya existe en tu DatabaseHelper
+                DatabaseHelper.EnviarApelacion(_username, txtMensaje.Text);
 
-            new CustomMessageBox("ENVIADO", "Tu solicitud ha sido enviada al administrador.", System.Windows.Media.Brushes.Green).ShowDialog();
-            this.Close();
+                // Usamos tu CustomMessageBox para confirmar
+                new CustomMessageBox("Enviado", "Tu solicitud ha sido enviada a los administradores.", Brushes.LimeGreen, false).ShowDialog();
+
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al enviar: " + ex.Message);
+            }
         }
+
+        private void BtnCancelar_Click(object sender, RoutedEventArgs e) => this.Close();
     }
 }

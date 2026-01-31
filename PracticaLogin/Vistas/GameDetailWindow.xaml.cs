@@ -89,11 +89,13 @@ namespace PracticaLogin
             switch (_estadoActual)
             {
                 case ESTADO_NO_TIENE:
+                    // Intentamos comprar/añadir
                     ProcesarCompra();
+                    // IMPORTANTE: Recargamos el estado tras la compra
+                    RefrescarInterfaz();
                     break;
 
                 case ESTADO_COMPRADO:
-                    // Usamos tu CustomMessageBox para confirmar la descarga
                     CustomMessageBox msgD = new CustomMessageBox("Descargar", "¿Deseas iniciar la descarga de " + _juego.Titulo + "?", colorCian, true);
                     if (msgD.ShowDialog() == true)
                     {
@@ -102,31 +104,41 @@ namespace PracticaLogin
                     break;
 
                 case ESTADO_DESCARGADO:
-                    // Mensaje informativo (esConfirmacion = false para ocultar botón cancelar)
                     CustomMessageBox msgJ = new CustomMessageBox("Ejecutar", "Iniciando " + _juego.Titulo + "... ¡Disfruta!", colorCian, false);
                     msgJ.ShowDialog();
                     break;
             }
         }
 
+        private void RefrescarInterfaz()
+        {
+            VerificarEstadoJuego(); // Recalcula el estado (0, 1 o 2)
+        }
+
         private void ProcesarCompra()
         {
             Brush colorCian = (Brush)new BrushConverter().ConvertFrom("#00E5FF");
+
             if (_juego.Precio == 0)
             {
+                // JUEGO GRATIS: Compra directa
                 DatabaseHelper.ComprarJuego(_usuario.Id, _juego.Id);
-                // Nuevo aviso estético para juego gratuito
+
                 CustomMessageBox msgG = new CustomMessageBox("Éxito", "¡Juego gratuito añadido a tu biblioteca!", colorCian, false);
                 msgG.ShowDialog();
+
+                // Recargamos botón inmediatamente para que salga "Descargar"
                 VerificarEstadoJuego();
             }
             else
             {
+                // JUEGO DE PAGO: Al carrito
                 CarritoService.Agregar(_juego);
-                // NUEVO: Cambio del aviso genérico por el CustomMessageBox
+
                 CustomMessageBox msgC = new CustomMessageBox("Carrito", "Juego añadido al carrito. Ve al carrito para finalizar la compra.", colorCian, false);
                 msgC.ShowDialog();
-                this.Close();
+
+                this.Close(); // Cerramos para ir a pagar
             }
         }
 

@@ -28,6 +28,7 @@ namespace PracticaLogin
             try { using (var c = GetConnection()) { c.Open(); using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM biblioteca WHERE id_usuario=@u AND id_videojuego=@g", c)) { cmd.Parameters.AddWithValue("@u", idUsuario); cmd.Parameters.AddWithValue("@g", idJuego); return Convert.ToInt32(cmd.ExecuteScalar()) > 0; } } } catch { return false; }
         }
 
+        // MÉTODO CORREGIDO Y BLINDADO
         public static int EstadoPropiedadJuego(int idUsuario, int idJuego)
         {
             // Retorna: 0 (No tiene), 1 (Comprado), 2 (Descargado)
@@ -36,17 +37,33 @@ namespace PracticaLogin
                 using (var c = GetConnection())
                 {
                     c.Open();
-                    // Nota: Asegúrate de tener la columna 'descargado' en tu tabla biblioteca, si no, devolverá 1 siempre que lo tenga.
                     string q = "SELECT descargado FROM biblioteca WHERE id_usuario=@u AND id_videojuego=@g";
+
                     using (var cmd = new MySqlCommand(q, c))
                     {
-                        cmd.Parameters.AddWithValue("@u", idUsuario); cmd.Parameters.AddWithValue("@g", idJuego);
-                        var res = cmd.ExecuteScalar(); if (res == null) return 0;
-                        try { return Convert.ToInt32(res) == 1 ? 2 : 1; } catch { return 1; }
+                        cmd.Parameters.AddWithValue("@u", idUsuario);
+                        cmd.Parameters.AddWithValue("@g", idJuego);
+
+                        var res = cmd.ExecuteScalar();
+
+                        // Si es nulo, es que no existe la compra
+                        if (res == null || res == DBNull.Value) return 0;
+
+                        // Conversión segura: MySQL a veces devuelve bool, sbyte o int
+                        int valorDescargado = 0;
+                        if (res is bool b) valorDescargado = b ? 1 : 0;
+                        else valorDescargado = Convert.ToInt32(res);
+
+                        // Lógica: Si descargado es 1, devolvemos estado 2. Si no, estado 1.
+                        return (valorDescargado == 1) ? 2 : 1;
                     }
                 }
             }
-            catch { return 0; }
+            catch (Exception ex)
+            {
+                // En caso de error, asumimos 0 pero podrías loguear 'ex.Message'
+                return 0;
+            }
         }
 
         public static void MarcarComoDescargado(int idUsuario, int idJuego)
