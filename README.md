@@ -80,18 +80,14 @@ Este proyecto requiere una base de datos MySQL. Haz clic abajo para ver el scrip
 -- ==========================================================
 -- 1. PREPARACIÓN DEL ENTORNO
 -- ==========================================================
--- Elimina la base de datos si ya existe para empezar de cero
 DROP DATABASE IF EXISTS akay_data;
--- Crea la base de datos
 CREATE DATABASE akay_data;
--- Selecciona la base de datos para trabajar en ella
 USE akay_data;
 
 -- ==========================================================
 -- 2. DEFINICIÓN DE ESTRUCTURAS (TABLAS)
 -- ==========================================================
 
--- Tabla que almacena la información de los usuarios y administradores
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100),
@@ -105,32 +101,32 @@ CREATE TABLE usuarios (
     activo TINYINT(1) DEFAULT 1,
     grado_baneo INT DEFAULT 0,
     fin_baneo DATETIME NULL,
-    suscripcion VARCHAR(20) DEFAULT 'FREE'
+    suscripcion VARCHAR(20) DEFAULT 'FREE',
+    estado_presencia VARCHAR(20) DEFAULT 'Offline'
 );
 
--- Tabla para el catálogo de juegos disponibles
 CREATE TABLE videojuegos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(100) NOT NULL,
-    tematica VARCHAR(50),       -- Género
-    coste DECIMAL(10, 2),       -- Precio
-    espacio_gb DECIMAL(10, 2),  -- Tamaño GB
-    online TINYINT(1),          -- 1 para Online, 0 para Local
-    jugadores INT,              -- Cantidad de jugadores
-    imagen_url VARCHAR(255)     -- Ruta de la foto
+    tematica VARCHAR(50),
+    coste DECIMAL(10, 2),
+    espacio_gb DECIMAL(10, 2),
+    online TINYINT(1),
+    jugadores INT,
+    imagen_url VARCHAR(500),
+    imagen_fondo_url VARCHAR(500)
 );
 
--- Tabla que relaciona qué usuarios han comprado qué juegos
 CREATE TABLE biblioteca (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_videojuego INT NOT NULL,
     fecha_compra DATETIME DEFAULT CURRENT_TIMESTAMP,
+    descargado TINYINT DEFAULT 0, -- Columna para la simulación de descarga
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (id_videojuego) REFERENCES videojuegos(id) ON DELETE CASCADE
 );
 
--- Tabla de auditoría para registrar las acciones de los administradores
 CREATE TABLE log_actividad (
     id_log INT AUTO_INCREMENT PRIMARY KEY,
     id_admin INT NOT NULL,
@@ -140,7 +136,6 @@ CREATE TABLE log_actividad (
     FOREIGN KEY (id_admin) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- Tabla para gestionar las peticiones de desbaneo de los usuarios
 CREATE TABLE apelaciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -150,19 +145,39 @@ CREATE TABLE apelaciones (
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- Nueva tabla para la gestión de soporte técnico e incidencias
-CREATE TABLE IF NOT EXISTS soporte_tickets (
+CREATE TABLE soporte_tickets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     motivo VARCHAR(100),
     mensaje TEXT,
-    estado VARCHAR(20) DEFAULT 'ABIERTO', -- 'ABIERTO' o 'RESUELTO'
+    estado VARCHAR(20) DEFAULT 'ABIERTO',
     fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
+CREATE TABLE amistades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario1 INT NOT NULL,
+    id_usuario2 INT NOT NULL,
+    estado VARCHAR(20) DEFAULT 'PENDIENTE',
+    fecha_amistad DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario1) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario2) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE chat_mensajes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_remitente INT NOT NULL,
+    id_destinatario INT NOT NULL,
+    mensaje TEXT NOT NULL,
+    leido TINYINT(1) DEFAULT 0,
+    fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_remitente) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_destinatario) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
 -- ==========================================================
--- 3. CARGA DE DATOS (USUARIOS Y ADMINS ORIGINALES)
+-- 3. CARGA DE DATOS (TUS INSERTS ORIGINALES)
 -- ==========================================================
 
 -- Admin y Usuarios básicos
@@ -172,43 +187,43 @@ VALUES ('admin', 'admin123', 'admin@akay.com', 'ADMIN', 1, 'VIP');
 INSERT INTO usuarios (username, password, email, rol, activo)
 VALUES ('user', '1234', 'user@email.com', 'USER', 1);
 
--- 1. Usuario LIMPIO (Activo)
+-- Usuarios con diferentes estados de baneo
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Ana', 'Limpia', 'JugadorLegal', '1234', 'ana@test.com', 'USER', 1, 0, NULL);
 
--- 2. Usuario BANEADO GRADO 1 (1 Día desde hoy)
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Berto', 'Leve', 'Toxic_Nvl1', '1234', 'berto@test.com', 'USER', 0, 1, DATE_ADD(NOW(), INTERVAL 1 DAY));
 
--- 3. Usuario BANEADO GRADO 2 (3 Días desde hoy)
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Carlos', 'Medio', 'Campero_Nvl2', '1234', 'carlos@test.com', 'USER', 0, 2, DATE_ADD(NOW(), INTERVAL 3 DAY));
 
--- 4. Usuario BANEADO GRADO 3 (1 Semana desde hoy)
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Daniela', 'Grave', 'Troll_Nvl3', '1234', 'dani@test.com', 'USER', 0, 3, DATE_ADD(NOW(), INTERVAL 7 DAY));
 
--- 5. Usuario BANEADO GRADO 4 (1 Mes desde hoy)
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Edu', 'Muy Grave', 'Cheater_Nvl4', '1234', 'edu@test.com', 'USER', 0, 4, DATE_ADD(NOW(), INTERVAL 1 MONTH));
 
--- 6. Usuario BANEADO GRADO 5 (PERMANENTE - Año 9999)
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Fede', 'Hacker', 'Hacker_Perm', '1234', 'fede@test.com', 'USER', 0, 5, '9999-12-31 23:59:59');
 
--- 7. Usuario CON BANEO EXPIRADO
 INSERT INTO usuarios (nombre, apellidos, username, password, email, rol, activo, grado_baneo, fin_baneo)
 VALUES ('Gabi', 'Perdonado', 'Ex_Baneado', '1234', 'gabi@test.com', 'USER', 0, 1, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
--- Cambio de longitud de columna y creación de admins específicos
-ALTER TABLE usuarios MODIFY COLUMN rol VARCHAR(20);
-
+-- Admins específicos
 INSERT INTO usuarios (username, password, email, rol, activo) VALUES ('SuperAdmin', '1234', 'super@akay.com', 'SUPERADMIN', 1);
 INSERT INTO usuarios (username, password, email, rol, activo) VALUES ('adminJ', '1234', 'games@akay.com', 'GAME_ADMIN', 1);
 INSERT INTO usuarios (username, password, email, rol, activo) VALUES ('adminS', '1234', 'support@akay.com', 'SUPPORT_ADMIN', 1);
 INSERT INTO usuarios (username, password, email, rol, activo) VALUES ('adminU', '1234', 'mod@akay.com', 'USER_ADMIN', 1);
 
--- Ticket de prueba para soporte
+-- Amistades y Chat de prueba
+INSERT INTO amistades (id_usuario1, id_usuario2, estado) VALUES (1, 2, 'ACEPTADA');
+
+INSERT INTO chat_mensajes (id_remitente, id_destinatario, mensaje) VALUES 
+(1, 2, 'Hola, ¿te hace una partida al LOL?'),
+(2, 1, 'Claro, dame 5 minutos que entro.'),
+(1, 2, 'Perfecto, te espero en el lobby.');
+
+-- Ticket de soporte
 INSERT INTO soporte_tickets (id_usuario, motivo, mensaje) 
 VALUES (2, 'Error de conexión', 'No puedo entrar al servidor de GTA V desde ayer.');
 
