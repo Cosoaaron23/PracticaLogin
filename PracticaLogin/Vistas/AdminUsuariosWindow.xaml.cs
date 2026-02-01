@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq; // NECESARIO PARA EL FILTRO
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,6 +12,7 @@ namespace PracticaLogin
     {
         private int _idAdmin;
         private Usuario _usuarioSeleccionado;
+        private List<Usuario> _listaCompletaUsuarios; // Para guardar todos y filtrar en memoria
 
         public AdminUsuariosWindow(int idAdmin)
         {
@@ -18,11 +21,28 @@ namespace PracticaLogin
             CargarUsuarios();
         }
 
-        private void CargarUsuarios()
+        private void CargarUsuarios(string filtro = "")
         {
             try
             {
-                dgUsuarios.ItemsSource = DatabaseHelper.ObtenerUsuarios();
+                // 1. Obtenemos TODOS los usuarios de la BD
+                _listaCompletaUsuarios = DatabaseHelper.ObtenerUsuarios();
+
+                // 2. Si hay texto en el buscador, filtramos la lista en memoria
+                if (!string.IsNullOrWhiteSpace(filtro))
+                {
+                    var listaFiltrada = _listaCompletaUsuarios.Where(u =>
+                        u.Username.ToLower().Contains(filtro.ToLower()) ||
+                        u.Email.ToLower().Contains(filtro.ToLower())
+                    ).ToList();
+
+                    dgUsuarios.ItemsSource = listaFiltrada;
+                }
+                else
+                {
+                    // Si no hay filtro, mostramos todos
+                    dgUsuarios.ItemsSource = _listaCompletaUsuarios;
+                }
             }
             catch (Exception ex)
             {
@@ -30,6 +50,13 @@ namespace PracticaLogin
             }
         }
 
+        // --- EVENTO DEL BUSCADOR ---
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CargarUsuarios(txtBusqueda.Text);
+        }
+
+        // --- SELECCIÓN EN LA TABLA ---
         private void DgUsuarios_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _usuarioSeleccionado = dgUsuarios.SelectedItem as Usuario;
@@ -47,10 +74,10 @@ namespace PracticaLogin
                 {
                     lblEstadoBaneo.Text = "BANEADO";
                     lblEstadoBaneo.Foreground = Brushes.Red;
-                    cmbGradoBaneo.SelectedIndex = _usuarioSeleccionado.GradoBaneo - 1;
+                    cmbGradoBaneo.SelectedIndex = (_usuarioSeleccionado.GradoBaneo > 0) ? _usuarioSeleccionado.GradoBaneo - 1 : 0;
 
                     if (_usuarioSeleccionado.FinBaneo.HasValue)
-                        lblFinBaneo.Text = "Fin: " + _usuarioSeleccionado.FinBaneo.Value.ToString("dd/MM/yyyy HH:mm");
+                        lblFinBaneo.Text = "Fin: " + _usuarioSeleccionado.FinBaneo.Value.ToString("dd/MM HH:mm");
                     else
                         lblFinBaneo.Text = "Fin: Indefinido";
                 }
@@ -70,6 +97,7 @@ namespace PracticaLogin
             }
         }
 
+        // --- ACCIONES DEL PANEL DERECHO ---
         private void BtnGuardarDatos_Click(object sender, RoutedEventArgs e)
         {
             if (_usuarioSeleccionado == null) return;
@@ -85,14 +113,12 @@ namespace PracticaLogin
 
             DatabaseHelper.ActualizarUsuario(_usuarioSeleccionado.Id, nuevoEmail, nuevoRol);
             MessageBox.Show("Datos actualizados.");
-            CargarUsuarios();
+            CargarUsuarios(txtBusqueda.Text); // Recargar manteniendo filtro
         }
 
         private void BtnCambiarPass_Click(object sender, RoutedEventArgs e)
         {
-            if (_usuarioSeleccionado == null) return;
-            if (string.IsNullOrWhiteSpace(txtNuevaPass.Text)) return;
-
+            if (_usuarioSeleccionado == null || string.IsNullOrWhiteSpace(txtNuevaPass.Text)) return;
             DatabaseHelper.AdminCambiarPass(_usuarioSeleccionado.Id, txtNuevaPass.Text, _idAdmin);
             MessageBox.Show($"Contraseña cambiada para {_usuarioSeleccionado.Username}.");
             txtNuevaPass.Clear();
@@ -102,63 +128,49 @@ namespace PracticaLogin
         {
             if (_usuarioSeleccionado == null) return;
             if (cmbGradoBaneo.SelectedIndex == -1) { MessageBox.Show("Selecciona un nivel de sanción."); return; }
-
-            if (_usuarioSeleccionado.Rol.Contains("ADMIN"))
-            {
-                MessageBox.Show("No puedes banear a otro administrador.");
-                return;
-            }
+            if (_usuarioSeleccionado.Rol.Contains("ADMIN")) { MessageBox.Show("No puedes banear a otro admin."); return; }
 
             int grado = cmbGradoBaneo.SelectedIndex + 1;
-
             DatabaseHelper.AplicarSancion(_usuarioSeleccionado.Id, grado, _idAdmin);
-
-            MessageBox.Show($"Usuario sancionado con Nivel {grado}.");
-            CargarUsuarios();
+            MessageBox.Show($"Usuario sancionado (Nivel {grado}).");
+            CargarUsuarios(txtBusqueda.Text);
         }
 
         private void BtnIndultar_Click(object sender, RoutedEventArgs e)
         {
             if (_usuarioSeleccionado == null) return;
-
             DatabaseHelper.LevantarCastigo(_usuarioSeleccionado.Id, _idAdmin);
-            MessageBox.Show("Sanción levantada. El usuario ya puede entrar.");
-            CargarUsuarios();
+            MessageBox.Show("Sanción levantada.");
+            CargarUsuarios(txtBusqueda.Text);
         }
-
-        // === NUEVAS FUNCIONES ===
 
         private void BtnCrearUsuario_Click(object sender, RoutedEventArgs e)
         {
-            // Abre la ventana de creación y espera a que cierre
-            AdminCreateUserWindow ventanaCrear = new AdminCreateUserWindow(_idAdmin);
-            ventanaCrear.ShowDialog();
-
-            // Recargamos la lista por si se ha creado uno nuevo
-            CargarUsuarios();
+            try
+            {
+                AdminCreateUserWindow v = new AdminCreateUserWindow(_idAdmin);
+                v.ShowDialog();
+                CargarUsuarios(txtBusqueda.Text);
+            }
+            catch { MessageBox.Show("Ventana 'AdminCreateUserWindow' no encontrada."); }
         }
 
         private void BtnVerApelaciones_Click(object sender, RoutedEventArgs e)
         {
-            // Abre la ventana de apelaciones
-            ApelacionesWindow ventanaApelaciones = new ApelacionesWindow();
-            ventanaApelaciones.ShowDialog();
-
-            // Recargamos por si se ha desbaneado a alguien desde allí
-            CargarUsuarios();
+            try
+            {
+                ApelacionesWindow v = new ApelacionesWindow();
+                v.ShowDialog();
+                CargarUsuarios(txtBusqueda.Text);
+            }
+            catch { MessageBox.Show("Ventana 'ApelacionesWindow' no encontrada."); }
         }
-
-        // =======================
 
         private void LimpiarFormulario()
         {
-            txtUsername.Clear();
-            txtEmail.Clear();
-            txtNuevaPass.Clear();
-            cmbRol.SelectedIndex = -1;
-            cmbGradoBaneo.SelectedIndex = -1;
-            lblEstadoBaneo.Text = "-";
-            lblFinBaneo.Text = "-";
+            txtUsername.Clear(); txtEmail.Clear(); txtNuevaPass.Clear();
+            cmbRol.SelectedIndex = -1; cmbGradoBaneo.SelectedIndex = -1;
+            lblEstadoBaneo.Text = "-"; lblFinBaneo.Text = "-";
         }
 
         private void BtnCerrar_Click(object sender, RoutedEventArgs e) => this.Close();
