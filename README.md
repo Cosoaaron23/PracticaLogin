@@ -36,7 +36,7 @@ El proyecto implementa una arquitectura robusta separando la interfaz (XAML) de 
 
 | Gestión de Usuarios (Admin) | Detalles y Descarga |
 |:---:|:---:|
-| <img src="screenshots/admin.png" alt="Admin Panel" width="400"/> | <img src="screenshots/detalle.png" alt="Game Detail" width="400"/> |
+| <img src="screenshots/Captura de pantalla 2026-02-06 002220.png" alt="Admin Panel" width="400"/> | <img src="screenshots/detalle.png" alt="Game Detail" width="400"/> |
 
 ---
 
