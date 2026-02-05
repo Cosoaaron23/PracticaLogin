@@ -32,11 +32,11 @@ El proyecto implementa una arquitectura robusta separando la interfaz (XAML) de 
 
 | Pantalla de Login | Panel Principal (Home) |
 |:---:|:---:|
-| <img src="screenshots/login.png" alt="Login Screen" width="400"/> | <img src="screenshots/home.png" alt="Home Screen" width="400"/> |
+| <img src="screenshots/login.png" alt="Login Screen" width="400"/> | <img src="screenshots/imagen_2026-02-06_002400478.png" alt="Home Screen" width="400"/> |
 
 | Gestión de Usuarios (Admin) | Detalles y Descarga |
 |:---:|:---:|
-| <img src="screenshots/Captura de pantalla 2026-02-06 002220.png" alt="Admin Panel" width="400"/> | <img src="screenshots/detalle.png" alt="Game Detail" width="400"/> |
+| <img src="screenshots/Captura de pantalla 2026-02-06 002220.png" alt="Admin Panel" width="400"/> | <img src="screenshots/imagen_2026-02-06_002308830.png" alt="Game Detail" width="400"/> |
 
 ---
 
